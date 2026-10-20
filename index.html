@@ -1,0 +1,2930 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><meta name="description" content="Az Operating Systems &amp; Memory Lab, a single-file course on OS internals and memory management"><title>Az Operating Systems &amp; Memory Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#111722;--panel:#192230;--panel2:#202b3a;--panel3:#141c27;--line:#2c394b;--line2:#3b4b61;--text:#e8eef7;--muted:#a7b4c7;--subtle:#8190a5;--accent:#8ab4f8;--strong:#c9ddff;--good:#9ed7bd;--warn:#edc477;--bad:#ff929e;--shadow:none;--radius:13px}
+:root[data-theme=light]{color-scheme:light;--bg:#f4f6f8;--panel:#fff;--panel2:#f7f9fb;--panel3:#f0f4f8;--line:#dce2e9;--line2:#cbd4df;--text:#17212d;--muted:#596a7e;--subtle:#718197;--accent:#315fa2;--strong:#244a82;--good:#176b4c;--warn:#8c5c04;--bad:#b33143;--shadow:0 8px 24px rgba(20,35,50,.05)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}a{color:var(--accent);text-decoration:none}.muted{color:var(--muted)}.mono,code,pre,textarea{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.topbar{height:64px;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text)}.brand-mark{width:34px;height:34px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2);display:grid;place-items:center;color:var(--strong);font-weight:850;font-size:14px}.brand strong{display:block;font-size:14px;line-height:1.2}.brand small{display:block;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-top:2px}
+.top-meta{flex:1;color:var(--subtle);font-size:12px;letter-spacing:.02em}
+.top-actions{display:flex;align-items:center;gap:7px}.top-actions label{font-size:11px;color:var(--muted)}
+select,.btn{border:1px solid var(--line2);background:var(--panel3);color:var(--text);border-radius:8px;padding:8px 11px;font-size:12px}.btn{font-weight:600;white-space:nowrap}.btn:hover{border-color:var(--accent);color:var(--strong)}.btn.primary{background:var(--accent);color:#10203a;border-color:var(--accent)}:root[data-theme=light] .btn.primary{color:white}
+.layout{display:grid;grid-template-columns:264px minmax(420px,1fr);max-width:1500px;margin:auto;min-height:calc(100vh - 64px)}
+.sidebar{position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto;border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column}
+.side-title{display:flex;justify-content:space-between;color:var(--subtle);font-size:10px;letter-spacing:.14em;font-weight:800;padding:0 4px 12px}
+.pill,.tag{border:1px solid var(--line2);border-radius:6px;padding:3px 7px;font-size:10px;color:var(--muted);white-space:nowrap}
+.search{display:flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:9px;background:var(--panel3);height:39px;padding:0 10px;margin-bottom:10px}
+.search input{min-width:0;width:100%;background:transparent;border:0;outline:0;color:var(--text);font-size:12px}
+.search kbd{border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--subtle);font-size:10px}
+.filter{display:block;color:var(--subtle);font-size:11px;margin-bottom:12px}.filter select{display:block;width:100%;max-width:none;margin-top:5px;padding:7px}
+.tree{display:flex;flex-direction:column;gap:12px}
+.group-label{display:flex;justify-content:space-between;color:var(--subtle);font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 5px}
+.link{width:100%;text-align:left;display:flex;gap:8px;align-items:center;background:transparent;border:1px solid transparent;color:var(--muted);padding:7px 8px;border-radius:8px;min-height:34px}
+.link .num{font:10px ui-monospace,monospace;color:var(--subtle);width:19px;flex:none}
+.link .name{font-size:12px;flex:1}.link .done{color:var(--good)}
+.link:hover{background:var(--panel2);color:var(--text)}
+.link.active{background:var(--panel2);border-color:var(--line2);color:var(--strong)}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.progress-row{display:flex;justify-content:space-between;color:var(--subtle);font-size:11px;margin-bottom:7px}
+.progress{height:5px;background:var(--panel2);border-radius:9px;overflow:hidden}.progress>div{height:100%;width:0;background:var(--accent);transition:width .25s}
+.side-actions{display:flex;gap:6px;margin-top:12px}.side-actions .btn{flex:1;padding:7px;font-size:11px}
+main{max-width:920px;width:100%;min-width:0;margin:auto;padding:28px 30px 40px}
+.breadcrumb{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-bottom:16px}
+.header{padding:2px 2px 22px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:800;color:var(--accent);margin-bottom:9px}
+.header h1{font-size:clamp(27px,3vw,36px);line-height:1.12;letter-spacing:-.035em;margin:0 0 10px;font-weight:700}
+.header p{font-size:14.5px;color:var(--muted);margin:0 0 14px;max-width:740px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag.good{color:var(--good)}.tag.warn{color:var(--warn)}
+.header-actions{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel-head{padding:18px 20px 0}.panel-head h2{font-size:15px;margin:0 0 4px;letter-spacing:-.01em;font-weight:650}.panel-head p{font-size:12.5px;color:var(--muted);margin:0}
+.body{padding:16px 20px 20px}
+.idea{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:20px}
+.idea p{font-size:13.5px;color:var(--muted);margin:0 0 13px}
+.mental{background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:13px}
+.mental small{color:var(--subtle);font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.mental strong{display:block;margin:6px 0;font-size:13px;color:var(--strong)}
+.mental p{font-size:12px;color:var(--muted);margin:0}
+.takeaway{padding:11px 13px;border:1px solid var(--line2);background:var(--panel3);border-radius:8px;color:var(--strong);font-size:12.5px;line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mini{background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:13px}
+.mini h3{font-size:12px;margin:0 0 7px;font-weight:650}
+.mini p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.6}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.steps li{counter-increment:s;display:flex;gap:10px;color:var(--muted);font-size:12.5px;line-height:1.55}
+.steps li:before{content:counter(s);width:23px;height:23px;flex:none;display:grid;place-items:center;border:1px solid var(--line2);background:var(--panel3);border-radius:6px;color:var(--accent);font:11px ui-monospace,monospace}
+.pseudo{white-space:pre-wrap;overflow:auto;background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:14px;font:12px/1.75 ui-monospace,monospace;color:var(--strong);margin:0}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line);text-align:left;padding:9px 10px;vertical-align:top}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle);font-weight:700}
+td{color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{padding:12px;background:var(--panel3);border:1px solid var(--line);border-radius:9px}
+.tile span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle)}
+.tile strong{display:block;color:var(--strong);font:700 14px ui-monospace,monospace;margin-top:6px}
+.tile small{font-size:10.5px;color:var(--muted);display:block;margin-top:2px}
+.notice{padding:12px 13px;background:var(--panel3);border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line));border-radius:9px;font-size:12.5px;color:var(--muted);line-height:1.65}
+.notice strong{color:var(--warn)}
+.notice.info{border-color:var(--line2)}.notice.info strong{color:var(--accent)}
+.lab-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lab-top label{font-size:11.5px;color:var(--muted)}
+.lab-input{width:100%;min-height:80px;resize:vertical;background:var(--panel3);border:1px solid var(--line2);border-radius:9px;padding:11px;color:var(--text);font:12px/1.65 ui-monospace,monospace;margin:11px 0}
+.lab-output{padding:13px;background:var(--panel3);border:1px solid var(--line);border-radius:9px;min-height:70px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--strong);font:12px/1.75 ui-monospace,monospace;overflow-x:auto}
+.lab-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.label{font-size:10px;color:var(--subtle);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.code-head{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:11px 13px;background:var(--panel3);border-bottom:1px solid var(--line)}
+.code-editor{display:block;width:100%;min-height:200px;resize:vertical;border:0;border-radius:0;background:var(--panel3);color:var(--text);padding:15px;font:12px/1.7 ui-monospace,monospace;outline:0}
+.code-foot{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 13px;color:var(--subtle);font-size:10px;border-top:1px solid var(--line)}
+.practice{border:1px solid var(--line);background:var(--panel3);border-radius:9px;padding:13px}
+.practice summary{cursor:pointer;font-size:12.5px;font-weight:600}
+.practice p{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.65}
+.references{display:flex;flex-direction:column;gap:8px}
+.references a{font-size:12.5px;overflow-wrap:anywhere}
+.home-hero{padding:30px;background:linear-gradient(150deg,var(--panel),var(--panel3));border:1px solid var(--line);border-radius:14px;margin-bottom:16px}
+.home-hero h1{font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.04em;margin:8px 0 14px;font-weight:700}
+.home-hero p{color:var(--muted);font-size:14px;max-width:720px;margin:0 0 18px;line-height:1.65}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat strong{display:block;font:700 22px ui-monospace,monospace;color:var(--strong)}
+.stat span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px}
+.chapter-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chapter-card{padding:14px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text)}
+.chapter-card:hover{border-color:var(--accent)}
+.chapter-card .num{font-size:10px;color:var(--accent);letter-spacing:.09em;font-weight:800}
+.chapter-card strong{display:block;font-size:13px;margin:5px 0;font-weight:650}
+.chapter-card p{font-size:11.5px;color:var(--muted);margin:0;line-height:1.55}
+.toast{position:fixed;z-index:99;bottom:20px;left:50%;transform:translate(-50%,10px);opacity:0;pointer-events:none;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:11px 15px;box-shadow:var(--shadow);font-size:12px;transition:opacity .14s,transform .14s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.footer{font-size:10.5px;color:var(--subtle);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 2px 14px;align-items:center}
+@media(max-width:1080px){.layout{grid-template-columns:240px minmax(360px,1fr)}main{padding:24px 22px 36px}}
+@media(max-width:840px){.topbar{height:auto;min-height:60px;flex-wrap:wrap;gap:10px;padding:10px 14px}.top-meta{display:none}.top-actions{margin-left:auto}.top-actions label{display:none}.layout{display:block}.sidebar{position:static;height:auto;max-height:none;border:0;border-bottom:1px solid var(--line);padding:14px}.tree{max-height:260px;overflow:auto}.side-foot{display:none}main{padding:20px 15px 32px}.idea{grid-template-columns:1fr}.mental{order:-1}.stats{grid-template-columns:1fr 1fr}.chapter-cards,.two,.lab-cols{grid-template-columns:1fr}}
+@media(max-width:520px){.brand small{display:none}.brand-mark{width:30px;height:30px}.brand strong{font-size:12px}.top-actions select{max-width:92px;padding:6px;font-size:10px}.top-actions .btn{padding:6px 8px;font-size:10px}.chapter-cards{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.home-hero{padding:20px}.home-hero h1{font-size:30px}.header h1{font-size:27px}.body,.panel-head{padding-left:15px;padding-right:15px}.footer{display:block}.footer span{display:block;margin-bottom:6px}}
+@media print{.topbar,.sidebar,.header-actions,.lab-top,.btn,.toast{display:none!important}.layout{display:block}main{padding:0;max-width:none}.panel,.home-hero{break-inside:avoid;box-shadow:none}body{background:#fff;color:#111}}
+</style></head><body>
+
+<header class="topbar">
+  <a class="brand" href="#home" id="homeLink"><span class="brand-mark">Az</span><span><strong>Az Operating Systems &amp; Memory Lab</strong><small>OPERATING SYSTEMS · MEMORY · CONCURRENCY</small></span></a>
+  <div class="top-meta" id="catalogCount"></div>
+  <div class="top-actions">
+    <label for="themeSelect">Theme</label>
+    <select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+    <button class="btn" id="printBtn">Print / PDF</button>
+    <button class="btn" id="exportBtn">Export</button>
+    <button class="btn" id="importBtn">Import</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Course navigation">
+    <div class="side-title"><span>COURSE CATALOG</span><span class="pill" id="lessonCount">0</span></div>
+    <div class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search OS and memory topics…" aria-label="Search lessons"><kbd>/</kbd></div>
+    <label class="filter">Chapter<select id="chapterFilter"><option value="all">All chapters</option></select></label>
+    <nav class="tree" id="courseTree" aria-label="Lessons"></nav>
+    <div class="side-foot">
+      <div class="progress-row"><span>COURSE PROGRESS</span><strong id="progressText">0 / 0</strong></div>
+      <div class="progress" id="progressBar"><div id="progressFill"></div></div>
+      <div class="side-actions"><button class="btn" data-page="home">Home</button><button class="btn" data-page="progress">Progress</button></div>
+    </div>
+  </aside>
+  <main id="mainView" tabindex="-1" aria-live="polite"></main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Az Operating Systems & Memory Lab
+   ============================================================ */
+var CHAPTERS=[
+ {id:"foundations",title:"1 OS foundations",desc:"Processes, threads, system calls, user/kernel mode, interrupts, context switching.",ids:["os-foundations"]},
+ {id:"scheduling",title:"2 Process and thread scheduling",desc:"FCFS, SJF, round-robin, priority, MLFQ, Linux CFS concepts.",ids:["os-scheduling"]},
+ {id:"concurrency",title:"3 Concurrency basics",desc:"Critical sections, mutexes, semaphores, monitors, condition variables, atomics.",ids:["concurrency-basics"]},
+ {id:"mutex",title:"4 Mutual exclusion algorithms",desc:"Peterson, Dekker, Lamport's bakery, ticket locks, CAS, test-and-set.",ids:["mutual-exclusion"]},
+ {id:"deadlocks",title:"5 Deadlocks",desc:"Necessary conditions, resource-allocation graphs, prevention, avoidance, detection, Banker's algorithm.",ids:["deadlocks"]},
+ {id:"alloc-basics",title:"6 Memory layout and allocation basics",desc:"Stack, heap, static memory, fragmentation, first-fit, best-fit, worst-fit.",ids:["alloc-basics"]},
+ {id:"kernel-alloc",title:"7 Kernel allocators",desc:"Buddy system, slab/slub, TLSF, segregated free lists, arenas, memory pools.",ids:["kernel-allocators"]},
+ {id:"vm",title:"8 Virtual memory",desc:"Paging, segmentation, page tables, multilevel page tables, TLBs, page-table walks.",ids:["virtual-memory"]},
+ {id:"replacement",title:"9 Page replacement and working sets",desc:"FIFO, LRU, Clock, NRU, LFU, WSClock, Working Set, Belady anomaly.",ids:["page-replacement"]},
+ {id:"protection",title:"10 Memory protection and sharing",desc:"Address translation, copy-on-write, memory-mapped files, shared memory, ASLR, page permissions.",ids:["protection-sharing"]},
+ {id:"gc",title:"11 Garbage collection",desc:"Reference counting, mark-sweep, copying/Cheney, mark-compact, generational, tri-color marking.",ids:["garbage-collection"]},
+ {id:"modern-gc",title:"12 Modern GC and runtimes",desc:"Concurrent GC, incremental GC, G1, ZGC, Shenandoah, write barriers, escape analysis.",ids:["modern-gc"]},
+ {id:"io",title:"13 Storage and I/O scheduling",desc:"SSTF, SCAN, C-SCAN, LOOK, C-LOOK, I/O queues, DMA, interrupt-driven I/O.",ids:["io-scheduling"]},
+ {id:"advanced-mem",title:"14 Advanced systems memory",desc:"NUMA placement, huge pages, cache locality, false sharing, memory ordering, lock-free allocation.",ids:["advanced-memory"]}
+];
+
+var D={
+ kind:"Concept",status:"Concept lesson",level:3,demo:"none",demoTitle:"Interactive teaching lab",inputKind:"text",refs:[],
+ input:"A workload, a memory layout, or an instance, plus the parameters of the algorithm.",
+ output:"A schedule, an allocation, or a set of metrics that rank the options.",
+ invariant:"Every OS and memory decision trades a resource (CPU, memory, bandwidth, latency) against another. State the metric before choosing the policy.",
+ complexity:["Depends on the workload and the hardware","Depends on the data volume and the access pattern","Measure on representative workloads"],
+ uses:"Use this as one layer inside a larger OS or runtime pipeline.",
+ strength:"Fits the problem when the workload and the metric are stated correctly.",
+ limits:"Depends on the workload mix, the hardware and the concurrency level.",
+ pitfall:"A policy that is optimal for one workload can be terrible for another. State the workload before choosing the policy.",
+ question:"What is the main idea of this lesson?",
+ trace:null
+};
+function mk(o){
+ var steps=o.steps||["Read the input.","Apply the method.","Produce the output.","Check the result."];
+ var base={};
+ for(var k in D)base[k]=D[k];
+ base.summary=o.summary||"";
+ base.mental=o.mental||o.title;
+ base.mentalText=o.mentalText||o.summary||"";
+ base.problem=o.problem||("How does "+o.title+" work and when is it the right choice?");
+ base.steps=steps;
+ base.trace=o.trace||steps.map(function(s,i){return ["Step "+(i+1),s,i===steps.length-1?"Verified":"Step done"]});
+ base.answer=o.answer||o.summary||"";
+ base.pseudo=o.pseudo||"";
+ base.sample=o.sample||"";
+ base.level=o.level||2;
+ for(var k2 in o)base[k2]=o[k2];
+ return base;
+}
+
+var RAW=[
+/* ===== 1 ===== */
+{id:"os-foundations",title:"OS foundations: processes, threads, syscalls and interrupts",level:2,kind:"Foundation",status:"Runnable teaching lab",
+ summary:"The OS multiplexes the CPU, memory and I/O across processes and threads. A system call traps into the kernel. An interrupt preempts the current execution. A context switch saves and restores the CPU state.",
+ mental:"A kernel in the middle, processes on top, hardware below",
+ mentalText:"A process owns an address space and resources. A thread is a flow of execution inside a process. The kernel switches between threads on a timer or an interrupt.",
+ problem:"How does an OS give each process the illusion of a private machine?",
+ steps:["Create a process with its own address space.","Create one or more threads inside the process.","Execute user code in user mode.","Trap into the kernel on a system call or an interrupt.","Save the CPU state, run the kernel handler, restore the state.","Switch to another thread when the timer fires."],
+ pseudo:"Process:\n  address space (code, data, heap, stack)\n  program counter, stack pointer, registers\n  open file descriptors, signal handlers, credentials\n  state:  new, ready, running, blocked, terminated\n  PCB (process control block) stores the state\n\nThread:\n  shares the address space with other threads in the process\n  has its own program counter, stack and registers\n  thread states mirror the process states\n  user-level threads are managed by a library\n  kernel-level threads are managed by the OS\n  many-to-one, one-to-one, many-to-many mappings\n\nSystem call:\n  user code invokes a library wrapper\n  the wrapper places the syscall number and arguments in registers\n  a trap (syscall) instruction switches to kernel mode\n  the kernel dispatch table routes to the handler\n  the handler returns a value and resumes the user code\n  examples:  read, write, open, close, fork, exec, wait, mmap, brk\n\nUser mode vs kernel mode:\n  user mode restricts privileged instructions\n  kernel mode allows everything\n  the mode bit is stored in a CPU register\n  a trap or interrupt flips the bit\n\nInterrupt:\n  a hardware device signals the CPU\n  the CPU saves the current state\n  the interrupt controller dispatches to a handler\n  the handler runs, then the state is restored\n  interrupts can be masked or nested\n\nContext switch:\n  save the current thread state (PC, SP, registers)\n  update the scheduler data structures\n  select the next thread\n  restore its state\n  flush or tag the TLB\n  cost:  microseconds, dominated by cache and TLB effects\n\nfork / exec / wait:\n  fork creates a child process that shares the address space copy-on-write\n  exec replaces the process image\n  wait blocks the parent until a child changes state",
+ invariant:"The kernel is the only code that runs in privileged mode. Every transition between user and kernel mode is a controlled trap or interrupt.",
+ uses:"Every general-purpose OS: Linux, Windows, macOS, BSD, and every real-time OS.",
+ strength:"The process abstraction isolates faults. The thread abstraction allows concurrency within a process. System calls give a controlled interface to hardware.",
+ limits:"Context switches are expensive. System calls have overhead. Threads share state and can race.",
+ pitfall:"Assuming a system call is cheap. A syscall can cost hundreds of nanoseconds and a context switch can cost microseconds. Batch work to amortize the cost.",
+ question:"What is the difference between a process and a thread?",
+ answer:"A process owns an address space and resources. A thread is a flow of execution inside a process and shares the address space with the other threads. Creating a thread is cheaper than creating a process, but threads share memory and can race.",
+ demo:"os-foundations",demoTitle:"Process lifecycle, syscall timeline and context switch cost",sample:"P1 spawn\nP1 syscall read\nP1 timer\nP2 spawn\nP2 syscall write\nP1 exit\nP2 timer\nP2 exit",refs:[
+  ["Silberschatz, Galvin, Gagne, Operating System Concepts, 10th ed., Wiley 2018","https://www.os-book.com/"],
+  ["Tanenbaum, Bos, Modern Operating Systems, 4th ed., Pearson 2014","https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003282"],
+  ["Arpaci-Dusseau, Operating Systems: Three Easy Pieces, 2018","https://pages.cs.wisc.edu/~remzi/OSTEP/"],
+  ["Love, Linux Kernel Development, 3rd ed., Addison-Wesley 2010","https://www.pearson.com/en-us/subject-catalog/p/linux-kernel-development/P200000003346"]],
+ complexity:["Context switch: microseconds","Syscall: hundreds of nanoseconds","Thread create: microseconds","Process create: tens of microseconds"]},
+
+/* ===== 2 ===== */
+{id:"os-scheduling",title:"Process and thread scheduling: FCFS, SJF, RR, MLFQ and CFS",level:3,kind:"Scheduling",status:"Runnable teaching lab",
+ summary:"The scheduler picks the next thread to run. FCFS is fair but suffers the convoy effect. SJF minimizes mean waiting time. Round-robin gives every thread a slice. Priority scheduling needs aging. MLFQ adapts to interactive and batch workloads. Linux CFS uses a red-black tree keyed on virtual runtime.",
+ mental:"A runqueue and a rule for who runs next",
+ mentalText:"Each thread has a state and a priority or weight. The scheduler picks the runnable thread with the smallest virtual runtime or the highest priority.",
+ problem:"Which scheduling policy fits a given workload and objective?",
+ steps:["List the threads with arrival, burst and priority.","Choose the objective: mean waiting, mean response, throughput, fairness.","Choose the policy: FCFS, SJF, SRT, RR, priority, MLFQ or CFS.","Run the simulation and compute the metrics.","Compare against other policies.","Tune the quantum or the weight."],
+ pseudo:"FCFS:  first come, first served\n  run in arrival order\n  convoy effect: a long job blocks everyone\n\nSJF (non-preemptive):\n  run the arrived job with the smallest burst\n  optimal for mean waiting time when all jobs are available\n\nSRT (preemptive SJF):\n  always run the job with the smallest remaining time\n  optimal for mean waiting with release dates\n\nRound-robin (quantum q):\n  FIFO queue, run the head for at most q, then requeue\n  good response time, overhead grows as q shrinks\n  q must be much larger than the context switch cost\n\nPriority:\n  run the highest-priority runnable thread\n  fixed priority starves low-priority threads\n  aging: priority_effective = base + alpha * waiting_time\n\nMultilevel feedback queue (MLFQ):\n  several queues with different quanta\n  new jobs enter the highest-priority queue\n  a job that uses its full quantum drops one level\n  a job that yields early stays at the same level\n  a periodic priority boost moves all jobs to the top\n  learns the job's behavior over time\n\nLinux CFS:\n  each task has a vruntime\n  vruntime advances inversely proportional to the weight\n  the scheduler always picks the smallest vruntime\n  the runqueue is a red-black tree keyed on vruntime\n  nice values map to weights:\n    nice = 0 -> 1024, nice = +1 -> 820, nice = -1 -> 1277\n  each nice step is roughly a 1.25x weight change\n  target latency and minimum granularity bound the slice\n\nScheduling metrics:\n  waiting time = completion - arrival - burst\n  turnaround time = completion - arrival\n  response time = first_run - arrival\n  throughput = jobs / total time\n  fairness:  Jain's index, max-min ratio",
+ invariant:"Every scheduling policy optimizes some objective. No single policy is optimal for all objectives.",
+ uses:"Every multitasking OS, hypervisor and real-time kernel.",
+ strength:"Simple policies are easy to reason about. SJF and SRT are optimal for mean waiting. CFS is fair and scales.",
+ limits:"SJF and SRT need to know the burst. RR has context-switch overhead. MLFQ needs tuning. CFS has no priority for latency.",
+ pitfall:"Choosing RR with too small a quantum. The context-switch overhead dominates and throughput collapses. Choose q much larger than the switch cost.",
+ question:"Why does SJF minimize mean waiting time when all jobs are available at time zero?",
+ answer:"A short job before a long job delays only the long job. Swapping them delays both. By an exchange argument, sorting by shortest first minimizes the sum of waiting times.",
+ demo:"os-scheduling",demoTitle:"FCFS, SJF, SRT, RR, priority, MLFQ",sample:"0 7 2\n2 4 1\n4 1 3\n5 4 2\n3",refs:[
+  ["Silberschatz, Galvin, Gagne, Operating System Concepts, Chapter 5","https://www.os-book.com/"],
+  ["Linux kernel documentation, CFS scheduler design","https://www.kernel.org/doc/html/latest/scheduler/sched-design-CFS.html"],
+  ["Arpaci-Dusseau, Operating Systems: Three Easy Pieces, Chapter 7 (Scheduling)","https://pages.cs.wisc.edu/~remzi/OSTEP/"],
+  ["Corbató et al., An experimental time-sharing system, AFIPS 1962","https://doi.org/10.1145/1460833.1460871"]],
+ complexity:["FCFS: O(1) dispatch","SJF/SRT: O(n) or O(log n) with a heap","RR: O(1) dispatch","CFS: O(log n) per dispatch (red-black tree)"]},
+
+/* ===== 3 ===== */
+{id:"concurrency-basics",title:"Concurrency basics: mutexes, semaphores, monitors and atomics",level:3,kind:"Concurrency",status:"Runnable teaching lab",
+ summary:"A critical section is code that must not run concurrently with another instance of itself. A mutex gives mutual exclusion. A semaphore generalizes to counting. A monitor bundles a lock with condition variables. Atomics give lock-free primitives.",
+ mental:"A lock and a queue of waiters",
+ mentalText:"A thread acquires the lock, enters the critical section, releases the lock. Waiters block on the lock or on a condition variable.",
+ problem:"How do you protect shared state from concurrent access?",
+ steps:["Identify the shared state and the critical sections.","Choose the primitive: mutex, semaphore, monitor or atomic.","Define the lock order if multiple locks are used.","Add condition variables for wait/notify.","Check the invariants that must hold.","Measure the throughput and the contention."],
+ pseudo:"Race condition:\n  two threads access shared state\n  at least one writes\n  the interleaving determines the result\n\nCritical section:\n  mutual exclusion\n  progress (a thread outside the section cannot block others)\n  bounded waiting (a thread cannot wait forever)\n\nMutex (binary semaphore):\n  lock()    acquire, block if held\n  unlock()  release, wake a waiter\n  must be released by the same thread that acquired it\n\nSemaphore:\n  S is an integer >= 0\n  P(S) or wait(S):  block while S == 0; S = S - 1\n  V(S) or signal(S):  S = S + 1; wake a waiter\n  binary semaphore:  S in {0, 1}\n  counting semaphore:  S >= 0\n  can be released by a different thread than the one that acquired it\n\nMonitor:\n  a mutex plus condition variables\n  only one thread is active in the monitor at a time\n  condition variables:  wait(cv) releases the lock and blocks\n                        signal(cv) wakes one waiter\n                        broadcast(cv) wakes all waiters\n  the woken thread must reacquire the lock\n  used in Java (synchronized), C# (lock), and Mesa-style languages\n\nAtomic operations:\n  compare-and-swap (CAS):  if *p == old then *p = new; return success\n  test-and-set (TAS):  set *p to 1 and return the old value\n  fetch-and-add (FAA):  return the old value and add delta\n  load-acquire, store-release for memory ordering\n\nMemory ordering:\n  relaxed:  no ordering guarantee\n  acquire:  no later operation moves before it\n  release:  no earlier operation moves after it\n  sequentially consistent:  a total order on all operations\n\nSpurious wakeups:\n  a wait can return without a signal\n  always recheck the condition in a while loop\n  while (!condition) wait(cv);\n\nLock granularity:\n  coarse-grained:  one lock for a large data structure\n  fine-grained:  one lock per bucket or per element\n  fine-grained scales better but risks deadlock\n\nLock-free:\n  use CAS loops instead of locks\n  progress is guaranteed by at least one thread\n  wait-free:  every thread makes progress in a bounded number of steps\n  ABA problem:  a value changes A -> B -> A, CAS succeeds unexpectedly\n  fix:  tagged pointers or hazard pointers",
+ invariant:"A lock protects an invariant. Every access to the shared state must hold the lock. A condition variable must be waited on in a loop.",
+ uses:"Every multi-threaded program, kernel subsystem and concurrent data structure.",
+ strength:"Mutexes and semaphores are simple and widely supported. Monitors make condition synchronization ergonomic. Atomics enable lock-free structures.",
+ limits:"Locks can deadlock, convoy and starve. Fine-grained locks are hard to get right. Lock-free code is very hard to verify.",
+ pitfall:"Waiting on a condition variable with an if instead of a while. A spurious wakeup or a signal from another thread's condition lets the thread proceed with a false condition.",
+ question:"Why must a condition variable wait be inside a while loop?",
+ answer:"Spurious wakeups and signals for other conditions can wake the thread when its predicate is still false. The while loop rechecks the predicate and waits again if needed. This is the standard Mesa semantics.",
+ demo:"concurrency-basics",demoTitle:"Mutex, semaphore and condition variable timeline",sample:"T1 lock\nT1 critical\nT2 lock\nT1 unlock\nT2 critical\nT2 unlock\nT1 wait\nT2 signal\nT1 wake",refs:[
+  ["Dijkstra, Cooperating sequential processes, 1965","https://www.cs.utexas.edu/users/EWD/transcriptions/EWD01/EWD123.html"],
+  ["Hoare, Monitors: an operating system structuring concept, CACM 1974","https://doi.org/10.1145/355620.361161"],
+  ["Herlihy, Shavit, The Art of Multiprocessor Programming, 2nd ed., Morgan Kaufmann 2020","https://www.sciencedirect.com/book/9780124159501/the-art-of-multiprocessor-programming"],
+  ["Arpaci-Dusseau, Operating Systems: Three Easy Pieces, Chapters 28-31","https://pages.cs.wisc.edu/~remzi/OSTEP/"]],
+ complexity:["Mutex lock/unlock: tens of nanoseconds uncontended","Contended lock: microseconds (context switch)","Atomic CAS: a few nanoseconds","Semaphore: same as a mutex plus a counter"]},
+
+/* ===== 4 ===== */
+{id:"mutual-exclusion",title:"Mutual exclusion algorithms: Peterson, bakery, ticket locks and CAS",level:4,kind:"Mutual exclusion",status:"Runnable teaching lab",
+ summary:"Mutual exclusion algorithms guarantee that at most one thread is in the critical section. Peterson and Dekker work for two threads. Lamport's bakery and ticket locks work for n threads. CAS and TAS are the hardware primitives that make modern locks possible.",
+ mental:"A flag, a turn variable, or a ticket number",
+ mentalText:"Each thread announces its intent and waits until it is its turn. The bakery algorithm hands out tickets and serves them in order.",
+ problem:"How do you guarantee mutual exclusion without a hardware lock?",
+ steps:["State the mutual exclusion, progress and bounded-waiting requirements.","Choose the algorithm: Peterson, Dekker, bakery, ticket lock or a CAS-based lock.","Prove the three properties.","Check the memory ordering requirements.","Measure the contention and the fairness.","Choose the primitive for the target hardware."],
+ pseudo:"Peterson's algorithm (two threads, i and j):\n  flag[i] = true\n  turn = j\n  while (flag[j] && turn == j):  wait\n  critical section\n  flag[i] = false\n  works for two threads\n  requires sequential consistency\n\nDekker's algorithm (two threads):\n  flag[i] = true\n  while (flag[j]):\n    if (turn == j):\n      flag[i] = false\n      while (turn == j):  wait\n      flag[i] = true\n  critical section\n  flag[i] = false\n  turn = j\n  the first correct mutual exclusion algorithm\n\nLamport's bakery algorithm (n threads):\n  choosing[i] = true\n  number[i] = 1 + max(number[0..n-1])\n  choosing[i] = false\n  for j in 0..n-1:\n    while choosing[j]:  wait\n    while number[j] != 0 and\n          (number[j], j) < (number[i], i):  wait\n  critical section\n  number[i] = 0\n  works for n threads, first-come-first-served\n\nTicket lock:\n  next_ticket = 0\n  now_serving = 0\n  lock:    my = fetch_and_add(next_ticket, 1)\n           while now_serving != my:  wait\n  unlock:  now_serving = now_serving + 1\n  FIFO fairness, one cache line per lock\n  contended lock causes cache-line ping-pong\n\nTest-and-set (TAS):\n  lock:    while test_and_set(&lock):  wait\n  unlock:  lock = 0\n  simple but not fair (no bounded waiting)\n\nCompare-and-swap (CAS):\n  lock:    while !compare_and_swap(&lock, 0, 1):  wait\n  unlock:  lock = 0\n  the base primitive for many lock-free structures\n\nTest-and-test-and-set:\n  spin on a read of the lock, then TAS only when it looks free\n  reduces cache traffic compared to plain TAS\n\nMCS lock:\n  a queue-based lock, one node per waiting thread\n  each thread spins on its own local flag\n  no cache-line contention\n  O(1) space per thread, FIFO fairness\n\nMemory ordering:\n  Peterson and bakery need sequentially consistent memory\n  on weakly ordered hardware, insert fences or use acquire/release",
+ invariant:"A correct mutual exclusion algorithm satisfies mutual exclusion, progress and bounded waiting. On weakly ordered hardware it must also use the correct fences.",
+ uses:"Kernel locks, user-space locks, lock-free data structures and any concurrent program.",
+ strength:"Peterson and bakery are simple and provably correct. Ticket locks are FIFO and cache-friendly. MCS locks scale well.",
+ limits:"Peterson and bakery are impractical for large n. Ticket locks suffer from cache-line contention. TAS is unfair.",
+ pitfall:"Implementing Peterson's algorithm on a weakly ordered CPU without fences. The compiler and the CPU can reorder the stores, breaking the proof.",
+ question:"Why is a ticket lock fair but a TAS lock unfair?",
+ answer:"A ticket lock hands out tickets in order and serves them in order, so a thread is guaranteed to acquire the lock after a bounded number of other threads. A TAS lock lets any waiting thread grab the lock first, so a thread can starve indefinitely.",
+ demo:"mutual-exclusion",demoTitle:"Peterson, bakery, ticket lock and TAS/CAS",sample:"peterson T1 T2 3\nbakery T1 T2 T3 4\nticket T1 T2 T3 5\ntas T1 T2 3",refs:[
+  ["Peterson, Myths about the mutual exclusion problem, Information Processing Letters 1981","https://doi.org/10.1016/0020-0190(81)90106-X"],
+  ["Lamport, A new solution of Dijkstra's concurrent programming problem, CACM 1974","https://doi.org/10.1145/361082.361093"],
+  ["Mellor-Crummey, Scott, Algorithms for scalable synchronization on shared-memory multiprocessors, ACM TOCS 1991","https://doi.org/10.1145/103727.103729"],
+  ["Herlihy, Shavit, The Art of Multiprocessor Programming, Chapters 2 and 7","https://www.sciencedirect.com/book/9780124159501/the-art-of-multiprocessor-programming"]],
+ complexity:["Peterson: O(1) per lock/unlock","Bakery: O(n) per lock","Ticket lock: O(1) per lock/unlock","MCS lock: O(1) per lock/unlock with a per-thread node"]},
+
+/* ===== 5 ===== */
+{id:"deadlocks",title:"Deadlocks: conditions, prevention, avoidance, detection and Banker's algorithm",level:4,kind:"Deadlocks",status:"Runnable teaching lab",
+ summary:"A deadlock is a cycle of threads each waiting for a resource held by another. The four necessary conditions are mutual exclusion, hold and wait, no preemption and circular wait. Prevention removes one condition. Avoidance uses a safe-state check. Detection finds cycles and recovers.",
+ mental:"A cycle in a resource-allocation graph",
+ mentalText:"Each thread holds some resources and waits for others. A cycle means no thread can proceed. Banker's algorithm checks whether granting a request leaves a safe state.",
+ problem:"How do you prevent, avoid, detect or recover from deadlocks?",
+ steps:["List the resources, their instances and the current allocation.","Build the resource-allocation graph.","Apply prevention, avoidance, detection or recovery.","For avoidance, run the safety check before granting.","For detection, look for a cycle.","For recovery, choose a victim and roll it back."],
+ pseudo:"Four necessary conditions (Coffman):\n  1. mutual exclusion:  a resource is held exclusively\n  2. hold and wait:  a thread holds a resource and waits for another\n  3. no preemption:  a resource cannot be taken away\n  4. circular wait:  a cycle of threads each waiting for the next\n\nPrevention:\n  break mutual exclusion:  make the resource shareable (not always possible)\n  break hold and wait:  request all resources at once\n  break no preemption:  preempt and roll back\n  break circular wait:  impose a global order on resources\n\nResource-allocation graph:\n  process -> resource (request edge)\n  resource -> process (assignment edge)\n  a cycle with single instances means deadlock\n  a cycle with multiple instances may or may not mean deadlock\n\nAvoidance (Banker's algorithm):\n  state:\n    Available[j]         instances of resource j free\n    Max[i][j]            max demand of process i for resource j\n    Allocation[i][j]     currently allocated\n    Need[i][j] = Max - Allocation\n  safety check:\n    Work = Available\n    Finish[i] = false for all i\n    while there is i with Finish[i] == false and Need[i] <= Work:\n      Work = Work + Allocation[i]\n      Finish[i] = true\n    if all Finish[i] are true:  safe state\n  resource request:\n    if Request[i] <= Need[i] and Request[i] <= Available:\n      tentatively allocate\n      run the safety check\n      if safe:  commit the allocation\n      else:  roll back and wait\n\nDetection:\n  build the wait-for graph (processes only)\n  look for a cycle\n  periodically or on demand\n  recovery:  kill a victim, roll it back, release its resources\n\nRecovery:\n  process termination:  kill one or more processes\n  resource preemption:  take a resource, roll back the holder\n  choose a victim by cost:  priority, runtime, resources held\n\nStarvation:\n  a thread never gets a resource because others always win\n  fix:  aging or fair queuing",
+ invariant:"A deadlock requires all four Coffman conditions. Removing any one prevents deadlock. A safe state guarantees no deadlock, but an unsafe state does not necessarily deadlock.",
+ uses:"Operating systems, database lock managers, thread pools and any system with shared resources.",
+ strength:"Banker's algorithm gives a precise safety guarantee. Prevention is simple. Detection lets the system run with fewer restrictions.",
+ limits:"Banker's algorithm needs advance knowledge of maximum demand. Prevention can be wasteful. Detection and recovery lose work.",
+ pitfall:"Assuming an unsafe state means a deadlock. An unsafe state means the system cannot guarantee that all processes finish, but the actual execution may still avoid deadlock.",
+ question:"Why does a cycle in the wait-for graph of single-instance resources imply deadlock?",
+ answer:"Each edge means the process is waiting for a resource held by the next process. A cycle means each process waits for the next and the last waits for the first. No process can release a resource, so none can proceed. The system is deadlocked.",
+ demo:"deadlocks",demoTitle:"Resource-allocation graph, Banker's safety check and detection",sample:"5 3\nP0 7 5 3\nP1 3 2 2\nP2 9 0 2\nP3 2 2 2\nP4 4 3 3\n\nalloc\nP0 0 1 0\nP1 2 0 0\nP2 3 0 2\nP3 2 1 1\nP4 0 0 2\n\navail\n3 3 2\n\nrequest\nP1 1 0 2",refs:[
+  ["Dijkstra, Cooperating sequential processes, 1965 (Banker's algorithm)","https://www.cs.utexas.edu/users/EWD/transcriptions/EWD01/EWD123.html"],
+  ["Coffman, Elphick, Shoshani, System deadlocks, ACM Computing Surveys 1971","https://doi.org/10.1145/356586.356588"],
+  ["Holt, Some deadlock properties of computer systems, ACM Computing Surveys 1972","https://doi.org/10.1145/356603.356607"],
+  ["Silberschatz, Galvin, Gagne, Operating System Concepts, Chapter 8","https://www.os-book.com/"]],
+ complexity:["Banker's safety check: O(n^2 * m) for n processes and m resources","Cycle detection: O(V + E)","Prevention: O(1) extra work per request","Detection interval: trade-off between CPU and lost work"]},
+
+/* ===== 6 ===== */
+{id:"alloc-basics",title:"Memory layout and allocation basics: stack, heap and fragmentation",level:3,kind:"Allocation",status:"Runnable teaching lab",
+ summary:"A process has a text segment, a data segment, a heap and a stack. The heap allocator hands out blocks and reclaims them. Fragmentation wastes memory. First-fit, best-fit and worst-fit are the classic placement policies.",
+ mental:"A heap with free and allocated blocks",
+ mentalText:"The allocator walks the free list and picks a block for each request. Freeing a block returns it to the free list and coalesces with neighbors.",
+ problem:"How does a heap allocator place and reclaim blocks?",
+ steps:["Fix the block layout: header, payload, footer or boundary tag.","Maintain a free list.","Apply a placement policy: first-fit, best-fit or worst-fit.","Split a block if it is larger than the request.","Coalesce adjacent free blocks on free.","Measure the fragmentation."],
+ pseudo:"Process memory layout (low to high address):\n  text    code, read-only, executable\n  data    initialized globals\n  bss     uninitialized globals, zero-filled\n  heap    grows up, brk/mmap\n  ...\n  stack   grows down, one per thread\n\nBlock layout:\n  header:  size, in-use flag, link to the next block\n  payload:  the user data\n  footer (optional):  size, for coalescing backwards\n  boundary tags:  header + footer, allow O(1) coalescing\n\nPlacement policies:\n  first-fit:   scan the free list, take the first block that fits\n               fast, can fragment the front of the list\n  best-fit:    take the smallest block that fits\n               reduces leftover space, can leave tiny fragments\n  worst-fit:   take the largest block\n               leaves a large remainder, rarely used in practice\n  next-fit:    like first-fit, but start from the last placement\n\nSplitting:\n  if block.size >= request + MIN_SPLIT:\n    allocate request from the front\n    return the remainder to the free list\n  else:\n    allocate the whole block\n\nCoalescing:\n  on free, check the previous and next blocks\n  if free, merge into one larger block\n  boundary tags make this O(1)\n\nFragmentation:\n  internal:  allocated block is larger than the request\n  external:  free memory is split into small non-contiguous blocks\n  measure:  largest free block / total free memory\n\nAllocator performance:\n  throughput:  number of requests per second\n  utilization:  fraction of the heap that is payload\n\nCommon heap allocators:\n  dlmalloc (Doug Lea)\n  ptmalloc (glibc)\n  jemalloc (Facebook)\n  tcmalloc (Google)\n  mimalloc (Microsoft)\n  each uses size classes, per-thread caches and arenas",
+ invariant:"An allocator must never hand out a block that is in use. It must never lose a free block. Coalescing keeps fragmentation bounded.",
+ uses:"Every program that allocates memory: C, C++, Rust, the kernel, runtimes.",
+ strength:"First-fit is fast. Best-fit reduces leftover space. Boundary tags make coalescing O(1).",
+ limits:"All policies suffer from fragmentation. Best-fit can leave many tiny fragments. No policy is optimal for every workload.",
+ pitfall:"Using best-fit for every allocation. It scans the whole free list and can leave many tiny unusable fragments. Use segregated free lists or a size-class allocator instead.",
+ question:"Why does internal fragmentation happen?",
+ answer:"The allocator hands out a block that is larger than the request, for example because the block must be aligned or because the size class is coarser than the request. The unused bytes are wasted. The waste is internal to the allocated block.",
+ demo:"alloc-basics",demoTitle:"First-fit, best-fit, worst-fit and fragmentation",sample:"64 128 32 256 64 96 128 48\n\nalloc 100\nalloc 50\nalloc 200\nfree 0\nalloc 80",refs:[
+  ["Wilson et al., Dynamic storage allocation: a survey and critical review, IWMM 1995","https://doi.org/10.1007/3-540-60368-9_19"],
+  ["Knuth, The Art of Computer Programming, Volume 1, Section 2.5 (Dynamic Storage Allocation)","https://www.informit.com/store/art-of-computer-programming-volume-1-fundamental-9780201896831"],
+  ["Berger, McKinley, Blumofe, Wilson, Hoard: a scalable memory allocator for multithreaded applications, ASPLOS 2000","https://doi.org/10.1145/378993.379232"],
+  ["Evans, jemalloc: a scalable concurrent malloc(3) implementation, 2006","https://people.freebsd.org/~jasone/jemalloc/bsdcan2006/jemalloc.pdf"]],
+ complexity:["First-fit: O(free list) worst case","Best-fit: O(free list)","Worst-fit: O(free list)","Coalescing with boundary tags: O(1)"]},
+
+/* ===== 7 ===== */
+{id:"kernel-allocators",title:"Kernel allocators: buddy system, slab, TLSF, arenas and pools",level:4,kind:"Kernel allocators",status:"Runnable teaching lab",
+ summary:"The kernel cannot use a general-purpose heap for everything. The buddy system allocates power-of-two blocks and coalesces them efficiently. Slab and SLUB cache frequently used object types. TLSF gives O(1) allocation. Per-CPU arenas reduce contention.",
+ mental:"Power-of-two blocks, object caches and per-CPU pools",
+ mentalText:"The buddy system splits large blocks into halves to satisfy a request and merges them back on free. The slab allocator pre-builds objects of the same type and hands them out from a freelist.",
+ problem:"How does the kernel allocate memory efficiently under high concurrency and with many object types?",
+ steps:["Choose the abstraction: pages (buddy), objects (slab) or general blocks (TLSF).","Set up the free lists per order (buddy) or per size class (TLSF).","Add per-CPU caches to reduce contention.","Handle the slow path when the cache is empty.","Reclaim memory under pressure (shrinker, reclaim).","Measure the fragmentation and the throughput."],
+ pseudo:"Buddy system:\n  maintain free lists for each order k (block size 2^k pages)\n  allocate(n):\n    find the smallest k with 2^k >= n\n    if the free list for k is empty, split a block of order k+1\n    repeat until a block is available\n    return the block\n  free(block, k):\n    if the buddy of block is free, merge into order k+1\n    repeat\n  buddy(block) = block XOR (1 << k)\n  O(log n) allocation, low external fragmentation\n\nSlab allocator:\n  one cache per object type (inode, dentry, task_struct, ...)\n  a cache has slabs (contiguous pages)\n  a slab holds objects of the same size\n  per-CPU freelists for fast allocation\n  objects are constructed and destroyed with a constructor\n  on free, the object goes back to the slab freelist\n  shrinks the cache under memory pressure\n  SLUB is the modern Linux implementation\n  SLOB is a small-footprint allocator for embedded systems\n\nTLSF (Two-Level Segregated Fit):\n  two-level bitmap of free lists\n  first level:  power of two (log2 of the size)\n  second level:  linear subdivision\n  O(1) allocation and free\n  bounded fragmentation\n  used in real-time systems and many embedded kernels\n\nSegregated free lists:\n  one free list per size class\n  allocation:  round up to the next size class, pop from that list\n  free:  push back to the size class\n  fast, but internal fragmentation per size class\n  used by dlmalloc, jemalloc, tcmalloc\n\nArenas:\n  a pool of memory managed by one allocator instance\n  one arena per thread reduces lock contention\n  rebalancing moves memory between arenas\n  used by jemalloc and tcmalloc\n\nMemory pools:\n  a fixed-size pool of preallocated objects\n  allocation is O(1) from a freelist\n  no fragmentation within the pool\n  used in kernels, network stacks and game engines\n\nPage reclaim:\n  page cache, anonymous memory, slab shrinkers\n  LRU lists:  active and inactive\n  reclaim frees the least recently used pages\n  swappiness controls the balance between page cache and anonymous memory\n\nPer-CPU caches:\n  each CPU has a local cache of free objects\n  allocation hits the local cache first\n  the slow path refills the cache from the global pool\n  reduces cache-line contention on the global freelist",
+ invariant:"A kernel allocator must be fast, bounded in its worst case, and safe under interrupts and concurrency. It must not fragment unpredictably.",
+ uses:"Linux kernel, Windows kernel, embedded RTOSes, hypervisors and any kernel that manages physical memory.",
+ strength:"Buddy is simple and coalesces well. Slab reuses objects and amortizes construction. TLSF gives O(1) with bounded fragmentation. Per-CPU caches scale.",
+ limits:"Buddy suffers internal fragmentation for non-power-of-two requests. Slab caches grow and need shrinking. TLSF needs tuning of the size classes.",
+ pitfall:"Using kmalloc for large allocations. The buddy system may split and coalesce many blocks. Use vmalloc or a dedicated pool for large or long-lived allocations.",
+ question:"Why does the buddy system use XOR to find the buddy of a block?",
+ answer:"Blocks at order k are aligned to 2^k. The buddy of a block at address b is b XOR 2^k, which flips the bit that distinguishes the two halves of the parent block. This makes the buddy lookup a single XOR operation.",
+ demo:"kernel-allocators",demoTitle:"Buddy system, slab and TLSF allocation",sample:"buddy 6\n40 100 20 200 60 8\n\nslab\ninode 20\ndentry 15\ntask_struct 5\n\nalloc\ninode\ndentry\ninode",refs:[
+  ["Knowlton, A fast storage allocator, CACM 1965 (buddy system)","https://doi.org/10.1145/365628.365640"],
+  ["Bonwick, The slab allocator: an object-caching kernel memory allocator, USENIX 1994","https://www.usenix.org/publications/library/proceedings/bos94/full_papers/bonwick.ps"],
+  ["Masmano et al., TLSF: a new dynamic memory allocator for real-time systems, ECRTS 2004","https://doi.org/10.1109/EMRTS.2004.1311009"],
+  ["Gorman, Understanding the Linux Virtual Memory Manager, Prentice Hall 2004","https://www.kernel.org/doc/gorman/"]],
+ complexity:["Buddy allocate/free: O(log n)","Slab allocate/free: O(1) from the per-CPU freelist","TLSF allocate/free: O(1)","Pool allocate/free: O(1)"]},
+
+/* ===== 8 ===== */
+{id:"virtual-memory",title:"Virtual memory: paging, page tables, multilevel tables and the TLB",level:4,kind:"Virtual memory",status:"Runnable teaching lab",
+ summary:"Virtual memory gives each process a private address space. The MMU translates virtual addresses to physical addresses using page tables. A TLB caches recent translations. Multilevel page tables save space for sparse address spaces.",
+ mental:"A virtual address split into a page number and an offset",
+ mentalText:"The CPU sends a virtual address to the MMU. The MMU looks up the page table, finds the physical frame and combines it with the offset. The TLB caches the result.",
+ problem:"How does the hardware translate a virtual address to a physical address?",
+ steps:["Split the virtual address into a page number and an offset.","Walk the page table:  one level or many.","Combine the physical frame number with the offset.","Cache the translation in the TLB.","Handle a TLB miss by walking the page table.","Handle a page fault by loading the page from disk."],
+ pseudo:"Paging:\n  virtual address = (VPN, offset)\n  physical address = (PFN, offset)\n  page size = 2^offset_bits, typically 4 KB\n  VPN = virtual address / page_size\n  offset = virtual address % page_size\n\nPage table:\n  one entry per virtual page\n  entry:  PFN, valid, dirty, accessed, permissions, present\n  a flat table for a 32-bit address space with 4 KB pages\n    has 2^20 entries, about 4 MB per process\n  too large for a 64-bit address space\n\nMultilevel page tables:\n  64-bit address split into several indices and an offset\n  x86-64 with 4 KB pages:  4 levels (PML4, PDPT, PD, PT)\n  each level has 512 entries (9 bits)\n  48-bit virtual address:  9 + 9 + 9 + 9 + 12 = 48 bits\n  only the populated subtrees are allocated\n  page-table walk:  4 memory accesses per translation\n\nInverted page table:\n  one entry per physical frame\n  the entry stores the (pid, VPN) that maps to it\n  a hash table finds the entry\n  used in some architectures (PowerPC, IA-64)\n\nTLB (translation lookaside buffer):\n  a small fully associative or set-associative cache\n  typically 32-1024 entries\n  hit:  1 cycle, no page-table walk\n  miss:  walk the page table, then insert\n  TLB shootdown:  invalidate an entry on all CPUs\n  ASID or PCID tags avoid a full flush on context switch\n  huge pages reduce TLB pressure\n\nPage fault:\n  the page is not present in memory\n  the CPU traps to the kernel\n  the kernel finds the page on disk or allocates a zero page\n  the kernel updates the page table\n  the kernel returns and the instruction is retried\n  minor fault:  page is in memory but not mapped\n  major fault:  page must be read from disk\n\nDemand paging:\n  load a page only on first access\n  the working set is the set of pages a process uses\n  thrashing:  the working set exceeds the frames available\n\nCopy-on-write:\n  fork() shares the parent pages, marked read-only\n  a write triggers a fault, the kernel copies the page\n  saves memory and time\n\nSegmentation:\n  a segment is a variable-size region (code, data, stack)\n  a logical address is (segment, offset)\n  the segment table maps to a base and a limit\n  used in x86 protected mode and in some embedded systems",
+ invariant:"The MMU translates every memory access. The translation must be correct and consistent across all CPUs. A stale TLB entry gives the wrong physical address.",
+ uses:"Every modern general-purpose CPU and OS. Virtual memory is the foundation of isolation and demand paging.",
+ strength:"Isolation, demand paging, memory-mapped files, copy-on-write and sparse address spaces all follow from virtual memory.",
+ limits:"Page-table walks cost memory accesses. A TLB miss is expensive. Multilevel tables save space but add latency.",
+ pitfall:"Forgetting to flush the TLB after changing a page table entry. A stale entry lets the CPU use the old translation, giving a wrong or unsafe physical address.",
+ question:"Why does a multilevel page table save memory?",
+ answer:"A flat table needs an entry for every virtual page, even the huge unused regions of the address space. A multilevel table allocates a level only if some page in that range is mapped. For a sparse address space, the savings are enormous.",
+ demo:"virtual-memory",demoTitle:"Page-table walk, TLB hit ratio and page fault cost",sample:"tlb 64 0.95\nlevels 4\naddr 0x1A2B3C4D\nfault 0.0001",refs:[
+  ["Silberschatz, Galvin, Gagne, Operating System Concepts, Chapter 9","https://www.os-book.com/"],
+  ["Intel 64 and IA-32 Architectures Software Developer's Manual, Volume 3A (Paging)","https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html"],
+  ["Jacob, Mudge, Virtual memory: issues of implementation, IEEE Computer 1998","https://doi.org/10.1109/2.683013"],
+  ["Arpaci-Dusseau, Operating Systems: Three Easy Pieces, Chapter 18 (Paging)","https://pages.cs.wisc.edu/~remzi/OSTEP/"]],
+ complexity:["Single-level page table: O(1) lookup, huge memory","Multilevel page table: 4 memory accesses on x86-64","TLB hit: 1 cycle","TLB miss: 10-100 cycles","Page fault: microseconds (minor) to milliseconds (major)"]},
+
+/* ===== 9 ===== */
+{id:"page-replacement",title:"Page replacement: FIFO, LRU, Clock, WSClock and Belady's anomaly",level:4,kind:"Page replacement",status:"Runnable teaching lab",
+ summary:"When memory is full, the OS evicts a page. FIFO is simple but can evict a hot page. LRU approximates the working set. Clock and Second-Chance approximate LRU with a reference bit. WSClock tracks the working set. Belady's anomaly shows that FIFO can fault more with more frames.",
+ mental:"A circular buffer of frames and a reference bit",
+ mentalText:"The OS walks the frames, checks the reference bit and evicts the first unreferenced page. WSClock also checks the age of the page against the working-set window.",
+ problem:"Which page should be evicted when memory is full?",
+ steps:["Choose the policy: FIFO, LRU, Clock, NRU, LFU or WSClock.","Track the per-page metadata: age, reference bit, use count.","On a fault, choose a victim.","Evict the victim, write it back if dirty.","Load the requested page.","Measure the fault rate and the working-set size."],
+ pseudo:"FIFO:\n  maintain a queue of pages in load order\n  evict the head on a fault\n  simple, suffers Belady's anomaly\n\nOptimal (Belady's MIN):\n  evict the page used furthest in the future\n  requires future knowledge\n  a theoretical benchmark\n\nLRU:\n  evict the least recently used page\n  good locality, no Belady's anomaly\n  exact LRU needs a timestamp per access, too expensive\n\nClock (Second-Chance):\n  a circular list of frames with a reference bit\n  on a fault, advance the hand\n  if the reference bit is 1, set it to 0 and advance\n  if the reference bit is 0, evict this frame\n  approximates LRU with one bit per frame\n\nNRU (Not Recently Used):\n  reference bit and dirty bit give four classes\n  evict from the lowest non-empty class\n  simple, low overhead\n\nLFU (Least Frequently Used):\n  evict the page with the smallest use count\n  can keep old pages forever\n  aging:  halve the counts periodically\n\nWSClock:\n  Clock + working-set window\n  a page is in the working set if its age < tau\n  on a fault, advance the hand\n  if the reference bit is 1, set it to 0\n  if the age < tau and not dirty, advance\n  if the age >= tau and clean, evict\n  if the age >= tau and dirty, schedule a write and advance\n  good for both locality and writeback\n\nWorking set:\n  W(t, tau) = the set of pages referenced in [t - tau, t]\n  the size of the working set tracks the locality\n  if the sum of working sets exceeds the frames, thrash\n\nBelady's anomaly:\n  FIFO can fault more with more frames\n  example:  reference string 1 2 3 4 1 2 5 1 2 3 4 5\n  with 3 frames:  9 faults\n  with 4 frames:  10 faults\n  LRU and Optimal do not exhibit the anomaly\n  the anomaly is a property of the algorithm, not the workload\n\nThrashing:\n  the working set exceeds the frames available\n  the system spends more time paging than computing\n  fix:  reduce the multiprogramming level, add memory, use a better policy\n\nFrame allocation:\n  equal allocation:  each process gets the same number of frames\n  proportional allocation:  frames proportional to the process size\n  working-set based:  allocate enough for the working set\n  page-fault frequency:  adjust to keep the fault rate in a band",
+ invariant:"A replacement policy decides which page leaves memory. A good policy keeps the working set resident. A bad policy causes thrashing.",
+ uses:"Every OS with demand paging, every hypervisor and every database buffer pool.",
+ strength:"LRU approximates the optimal policy for workloads with locality. Clock gives a cheap approximation. WSClock handles writeback and the working set together.",
+ limits:"Exact LRU is expensive. Clock and WSClock need tuning of the hand and tau. FIFO can exhibit Belady's anomaly.",
+ pitfall:"Using FIFO in a system with strong locality. FIFO can evict the hottest page. Use LRU, Clock or WSClock instead.",
+ question:"Why does Belady's anomaly occur in FIFO but not in LRU?",
+ answer:"FIFO's eviction order depends only on load order, which changes when the number of frames changes. A page that was evicted early with 3 frames may survive longer with 4 frames and then be re-evicted later, causing an extra fault. LRU's stack property guarantees that the set of pages in memory with k frames is a subset of the set with k+1 frames, so more frames never cause more faults.",
+ demo:"page-replacement",demoTitle:"FIFO, LRU, Clock, WSClock and Belady's anomaly",sample:"1 2 3 4 1 2 5 1 2 3 4 5\n3",refs:[
+  ["Belady, A study of replacement algorithms for a virtual-storage computer, IBM Systems Journal 1966","https://doi.org/10.1147/sj.52.0078"],
+  ["Carr, Hennessy, WSClock: a clock algorithm for working set paging, 1981","https://doi.org/10.1145/800221.806704"],
+  ["Corbató, A paging experiment with the Multics system, 1969","https://doi.org/10.7551/mitpress/10395.003.0009"],
+  ["Denning, Working sets past and present, IEEE TSE 1980","https://doi.org/10.1109/TSE.1980.230467"]],
+ complexity:["FIFO: O(1) per fault","LRU: O(1) with a hash map and a linked list","Clock: O(1) amortized per fault","WSClock: O(1) amortized per fault","Optimal: O(future) per fault"]},
+
+/* ===== 10 ===== */
+{id:"protection-sharing",title:"Memory protection and sharing: COW, mmap, shared memory and ASLR",level:4,kind:"Protection and sharing",status:"Runnable teaching lab",
+ summary:"Page permissions enforce read, write and execute protection. Copy-on-write shares pages until a write. Memory-mapped files map a file into the address space. Shared memory lets processes share pages. ASLR randomizes the layout to hinder exploits.",
+ mental:"A page table entry with permission bits and a shared flag",
+ mentalText:"The MMU checks the permission bits on every access. A write to a read-only page traps. The kernel then either copies the page or terminates the process.",
+ problem:"How does the OS protect memory and share it safely?",
+ steps:["Set the page permissions: read, write, execute, user, kernel.","Mark shared pages with a reference count.","On a write to a COW page, copy and update the mapping.","For mmap, map file pages into the address space.","For shared memory, map the same physical frames into multiple processes.","Randomize the base addresses for ASLR."],
+ pseudo:"Page permissions (x86-64 PTE bits):\n  P    present\n  R/W  read-only or read-write\n  U/S  user or supervisor\n  NX   no-execute\n  A    accessed\n  D    dirty\n\nProtection fault:\n  the CPU checks the permission bits on every access\n  a violation traps to the kernel\n  the kernel sends SIGSEGV to the process or handles the fault\n\nCopy-on-write (COW):\n  fork() marks the parent pages read-only and increments a refcount\n  a write by either process triggers a protection fault\n  the kernel copies the page, marks both writable, decrements the refcount\n  used by fork, mmap MAP_PRIVATE and snapshots\n\nMemory-mapped files:\n  mmap(addr, length, prot, flags, fd, offset)\n  maps file pages into the address space\n  MAP_SHARED:  writes go to the file and are visible to other mappers\n  MAP_PRIVATE:  writes are COW and stay local\n  page cache backs the mapping\n  used for executables, libraries and large data files\n\nShared memory:\n  shm_open + mmap MAP_SHARED, or shmget + shmat\n  the same physical frames map into multiple processes\n  the fastest IPC, no kernel copy\n  needs external synchronization (semaphores, futexes)\n\nASLR (Address Space Layout Randomization):\n  randomize the base of the stack, heap, mmap region and libraries\n  the executable itself can be PIE (position-independent)\n  hinders ROP and return-to-libc attacks\n  entropy is limited by the address-space size\n  combined with NX, stack canaries and CFI\n\nmprotect:\n  change the permissions of a mapped region\n  used for guard pages, JIT and stack growth\n\nGuard pages:\n  an unmapped page next to a stack or a heap\n  a stack overflow hits the guard page and traps\n\nMemory tagging:\n  ARM MTE, SPARC ADI, x86 LAM\n  a tag per allocation and per pointer\n  a mismatch traps on access\n  catches use-after-free and buffer overflows",
+ invariant:"Every access is checked against the permission bits. A shared page must be reference-counted. A COW page must be copied before the first write.",
+ uses:"Every OS, every sandbox, every process isolation mechanism and every memory-safe runtime.",
+ strength:"Permissions give fine-grained protection. COW and mmap save memory and time. Shared memory is the fastest IPC. ASLR raises the cost of exploitation.",
+ limits:"Permission checks add complexity. COW faults cost time. Shared memory needs explicit synchronization. ASLR has limited entropy.",
+ pitfall:"Forgetting to flush the TLB after changing page permissions. The CPU can use a stale writable mapping after mprotect(read-only) and let a write through.",
+ question:"How does copy-on-write make fork() fast?",
+ answer:"fork() does not copy the address space. It marks the parent pages read-only, increments a reference count and gives the child the same mappings. A write by either process triggers a fault, and only then is the single page copied. For a process that forks and calls exec, most pages are never written and never copied.",
+ demo:"protection-sharing",demoTitle:"COW, mmap, shared memory and ASLR",sample:"COW 3\nmmap 2\nshm 2\nASLR 28",refs:[
+  ["Silberschatz, Galvin, Gagne, Operating System Concepts, Chapter 9 (Protection)","https://www.os-book.com/"],
+  ["Smith, Maguire, Implementing precise exceptions in an imprecise architecture, 1999","https://doi.org/10.1109/12.752634"],
+  ["Shacham, The geometry of innocent flesh on the bone: return-into-libc without function calls, CCS 2007","https://doi.org/10.1145/1315245.1315313"],
+  ["Serebryany et al., Memory tagging: a new era of memory safety, 2018","https://doi.org/10.1145/3297858.3304042"]],
+ complexity:["Page permission check: 0 extra cycles (done by the MMU)","Protection fault: hundreds of nanoseconds","COW copy: one page copy per written page","mmap: O(1) per page on demand","ASLR entropy: 28-32 bits on x86-64"]},
+
+/* ===== 11 ===== */
+{id:"garbage-collection",title:"Garbage collection: refcount, mark-sweep, copying and generational",level:4,kind:"Garbage collection",status:"Runnable teaching lab",
+ summary:"A garbage collector reclaims objects that are no longer reachable. Reference counting frees on the last reference but cannot handle cycles. Mark-sweep traces from the roots and frees unreachable objects. Copying collectors move live objects and compact memory. Generational collectors exploit the weak generational hypothesis.",
+ mental:"A graph of objects rooted at the stack and globals",
+ mentalText:"The collector walks the graph from the roots, marks the reachable objects and frees the rest. A copying collector moves the live objects to a new region and leaves the garbage behind.",
+ problem:"How does a runtime reclaim memory that is no longer in use?",
+ steps:["Identify the roots: stack, registers, globals, thread-local storage.","Choose the algorithm: refcount, mark-sweep, copying or generational.","Trace or count references to find the live set.","Reclaim the unreachable objects.","Compact or move objects to reduce fragmentation.","Run the collector concurrently or incrementally to bound the pause."],
+ pseudo:"Reference counting:\n  each object has a count of references\n  on assign:  incref(new), decref(old)\n  on decref to 0:  free the object and decref its children\n  immediate reclamation\n  cannot collect cycles\n  fix:  cycle collector or weak references\n  used by CPython, Swift, Objective-C (ARC)\n\nMark-sweep:\n  mark phase:  trace from the roots and mark every reachable object\n  sweep phase:  walk the heap and free the unmarked objects\n  stop-the-world unless done concurrently\n  no object movement, so no pointer updates\n  fragmentation accumulates\n\nMark-compact:\n  mark phase:  as in mark-sweep\n  compact phase:  slide the live objects together\n  updates all pointers\n  no fragmentation, but a longer pause\n\nCopying collector (Cheney):\n  the heap is split into two semispaces:  from and to\n  allocate in the from space\n  when full, trace from the roots and copy live objects to the to space\n  update all pointers\n  swap the spaces\n  the cost is proportional to the live set, not the heap\n  no fragmentation\n  uses 2x the memory\n  good for short-lived objects\n\nGenerational GC:\n  weak generational hypothesis:  most objects die young\n  young generation:  small, collected often (minor GC)\n  old generation:  large, collected rarely (major GC)\n  promotion:  objects that survive a few minor GCs move to the old gen\n  write barrier:  track old-to-young pointers\n  card table:  a byte per card (for example 512 bytes)\n  used by HotSpot, V8, .NET, Go\n\nTri-color marking (incremental/concurrent):\n  white:  not yet visited\n  gray:   visited but children not scanned\n  black:  visited and children scanned\n  invariant:  no black object points to a white object\n  write barrier:  shade the white object gray on a black-to-white store\n  used by concurrent collectors\n\nCollection triggers:\n  allocation threshold\n  explicit System.gc() (a hint)\n  time-based\n  memory pressure\n\nStop-the-world pauses:\n  proportional to the live set for a copying collector\n  proportional to the heap for a mark-sweep collector\n  concurrent collectors move most work off the pause\n\nFinalizers:\n  run before an object is freed\n  unpredictable timing\n  discouraged; use try-with-resources or explicit close",
+ invariant:"A collector must never free a reachable object. A collector must eventually free unreachable objects. A concurrent collector must maintain the tri-color invariant with a write barrier.",
+ uses:"Java, C#, Go, Python, JavaScript, Ruby, OCaml and any managed runtime.",
+ strength:"Automatic memory management removes a whole class of bugs. Generational collectors exploit the common case. Copying collectors are fast when most objects die young.",
+ limits:"Stop-the-world pauses are unpredictable. Reference counting cannot collect cycles. Copying uses 2x memory. Write barriers cost on every store.",
+ pitfall:"Relying on finalizers for correctness. Finalizers run at an unpredictable time and may never run. Use explicit resource management instead.",
+ question:"Why does a copying collector cost less when most objects die young?",
+ answer:"The cost of a copying collection is proportional to the number of live objects, not the total heap. If most objects are garbage, only a small number are copied. The garbage is left behind and the semispaces are swapped. This is why the copying collector pairs well with the generational hypothesis.",
+ demo:"garbage-collection",demoTitle:"Reference counting, mark-sweep, copying and generational",sample:"roots R1 R2\nedges\nR1 -> A\nA -> B\nB -> C\nR2 -> D\nD -> E\nE -> D\n\ncycles\nD E",refs:[
+  ["McCarthy, Recursive functions of symbolic expressions and their computation by machine, CACM 1960","https://doi.org/10.1145/367177.367199"],
+  ["Cheney, A nonrecursive list compacting algorithm, CACM 1970","https://doi.org/10.1145/362790.362798"],
+  ["Ungar, Generation scavenging: a non-disruptive high performance storage reclamation algorithm, SIGSOFT 1984","https://doi.org/10.1145/800020.808261"],
+  ["Jones, Hosking, Moss, The Garbage Collection Handbook, 2nd ed., CRC Press 2023","https://gchandbook.org/"]],
+ complexity:["Reference counting: O(1) per assign, no pause","Mark-sweep: O(heap) per collection","Copying: O(live set) per collection","Generational minor GC: O(young live set)","Tri-color concurrent: O(heap) spread over time"]},
+
+/* ===== 12 ===== */
+{id:"modern-gc",title:"Modern GC and runtimes: concurrent, incremental, G1, ZGC and Shenandoah",level:5,kind:"Modern GC",status:"Runnable teaching lab",
+ summary:"Modern collectors aim for low pause times and high throughput. Concurrent collectors run alongside the mutator. Incremental collectors split the work into small steps. G1 uses region-based collection. ZGC and Shenandoah use colored pointers or forwarding pointers to keep pauses under a millisecond.",
+ mental:"Concurrent mark threads running alongside the application threads",
+ mentalText:"The collector marks objects concurrently with the application. A write barrier catches mutator updates. The pause is short because most work is done off the critical path.",
+ problem:"How do you collect garbage without long stop-the-world pauses?",
+ steps:["Choose the goal: low pause, high throughput or low footprint.","Choose the collector: concurrent, incremental, region-based or colored-pointer.","Add the write barrier:  card table, snapshot-at-the-beginning or incremental-update.","Run the mark phase concurrently with the mutator.","Pause briefly for the root scan and the final mark.","Compact or evacuate concurrently.","Measure the pause distribution and the throughput."],
+ pseudo:"Concurrent mark-sweep (CMS, HotSpot):\n  initial mark (STW):  mark the roots\n  concurrent mark:  trace the graph while the mutator runs\n  remark (STW):  catch up on the changes\n  concurrent sweep:  free the unmarked objects\n  no compaction, so fragmentation accumulates\n  write barrier:  card table or snapshot-at-the-beginning\n\nIncremental update:\n  the collector marks in small slices between mutator work\n  write barrier shades the old value gray\n  maintains the tri-color invariant\n\nSnapshot-at-the-beginning (SATB):\n  the collector marks everything reachable at the start of the cycle\n  write barrier shades the overwritten value\n  keeps floating garbage but is simpler\n\nG1 (Garbage-First, HotSpot):\n  the heap is split into many equal-size regions\n  a region is young, old, humongous or free\n  young collections:  copy the young regions to survivor regions\n  mixed collections:  collect the young plus the most garbage-rich old regions\n  the collection set is chosen by the garbage-first heuristic\n  remembered sets:  a per-region list of incoming references\n  SATB write barrier\n  predictable pause target:  -XX:MaxGCPauseMillis\n  stop-the-world pauses are short but frequent\n\nZGC (HotSpot, Java 11+):\n  colored pointers:  the low bits of the pointer store the state\n  load barriers:  the mutator fixes the pointer on load\n  concurrent mark, concurrent relocate, concurrent remap\n  regions of 2 MB (or more)\n  pauses are sub-millisecond, independent of the heap size\n  supports heaps up to many terabytes\n\nShenandoah (OpenJDK):\n  similar goals to ZGC\n  Brooks forwarding pointers for concurrent evacuation\n  load-reference barrier\n  concurrent mark, concurrent evacuation, concurrent update references\n  short pauses independent of the heap size\n\nEpsilon GC (no-op):\n  allocates but never collects\n  for benchmarking and short-lived jobs\n\nWrite barriers:\n  card table:  mark the card dirty on a store, scan dirty cards\n  remembered set:  track old-to-young pointers per region\n  SATB:  shade the overwritten reference\n  load barrier:  fix a colored pointer on load (ZGC, Shenandoah)\n  cost:  a few instructions per store\n\nEscape analysis:\n  the compiler proves an object does not escape a method\n  the object is allocated on the stack or its fields are scalarized\n  reduces the allocation rate\n  no collection needed for the escaped-free objects\n\nRegion-based collectors:\n  G1:  regions of 1-32 MB\n  ZGC:  regions of 2 MB or more\n  generational G1:  young and old regions\n  collect the garbage-rich regions first\n\nPause-time targets:\n  G1:  10-200 ms\n  ZGC:  < 1 ms\n  Shenandoah:  < 10 ms\n  throughput vs pause:  lower pause costs throughput\n\nTuning:\n  heap size, young size, region size, pause target\n  threads for concurrent marking and evacuation\n  measure, do not guess",
+ invariant:"A concurrent collector must maintain the tri-color invariant with a write barrier. A load barrier must fix a colored pointer before the mutator uses it.",
+ uses:"HotSpot (Java), OpenJDK, .NET, Go, V8, Dart and any runtime with a low-pause requirement.",
+ strength:"Concurrent collectors keep pauses short. G1 balances throughput and pause. ZGC and Shenandoah give sub-millisecond pauses on huge heaps.",
+ limits:"Concurrent collectors cost throughput. Write barriers cost on every store. Colored pointers cost memory bandwidth. Tuning is complex.",
+ pitfall:"Choosing ZGC for every Java workload. ZGC is excellent for very large heaps and strict pause requirements, but it uses more memory and CPU than G1. For small heaps with a relaxed pause budget, G1 is often faster.",
+ question:"How does a colored pointer in ZGC let the mutator fix a reference on load?",
+ answer:"The low bits of the pointer store the object's state (remapped, marked, forwarded). A load barrier checks the bits and, if the object has moved, updates the pointer to the new address before the mutator uses it. This lets the collector relocate objects concurrently without stopping the mutator.",
+ demo:"modern-gc",demoTitle:"G1 regions, ZGC colored pointers and pause targets",sample:"heap 4096\nregion 2\nyoung 512\nold 3584\npause 1\nGC 1\nGC 2\nGC 3",refs:[
+  ["Detlefs et al., Garbage-first garbage collection, ISMM 2004","https://doi.org/10.1145/1029873.1029879"],
+  ["ZGC: a scalable low-latency garbage collector, OpenJDK","https://wiki.openjdk.org/display/zgc/Main"],
+  ["Shenandoah GC, OpenJDK","https://wiki.openjdk.org/display/shenandoah/Main"],
+  ["Tene, Iyengar, Wolf, C4: the continuously concurrent compacting collector, ISMM 2011","https://doi.org/10.1145/1993478.1993495"]],
+ complexity:["G1 young GC: pause proportional to the young live set","G1 mixed GC: pause bounded by the pause target","ZGC: sub-millisecond pause independent of heap size","Shenandoah: pause bounded by the root set size","Write barrier: 1-5 instructions per store"]},
+
+/* ===== 13 ===== */
+{id:"io-scheduling",title:"Storage and I/O scheduling: SSTF, SCAN, C-SCAN, LOOK and DMA",level:3,kind:"I/O scheduling",status:"Runnable teaching lab",
+ summary:"The I/O scheduler reorders disk requests to minimize seek time. SSTF picks the nearest request. SCAN sweeps back and forth. C-SCAN sweeps in one direction and jumps back. LOOK and C-LOOK stop at the last request. DMA moves data without CPU involvement. Interrupt-driven I/O notifies the CPU on completion.",
+ mental:"A disk head moving across a set of requests",
+ mentalText:"The head moves from cylinder to cylinder. The scheduler orders the requests to reduce the total movement. SCAN sweeps to the end and reverses; C-SCAN jumps back without servicing.",
+ problem:"How do you order a set of disk requests to minimize seek time?",
+ steps:["List the requests with their track numbers and the initial head position.","Choose the policy: FCFS, SSTF, SCAN, C-SCAN, LOOK or C-LOOK.","Compute the total head movement.","Compare the policies on the same instance.","Consider the fairness and the variance.","For modern devices, check whether the scheduler is still useful."],
+ pseudo:"Disk geometry:\n  platter, track, cylinder, sector\n  seek time:  move the head to the target track\n  rotational latency:  wait for the sector to rotate under the head\n  transfer time:  read the bytes\n  total = seek + rotational + transfer\n\nFCFS:\n  serve in arrival order\n  fair, but a long seek can follow a short one\n\nSSTF (Shortest Seek Time First):\n  pick the request closest to the current head position\n  minimizes the next seek\n  can starve far requests\n\nSCAN (elevator):\n  sweep in one direction, serving every request on the way\n  reverse at the last track\n  no starvation, bounded wait\n\nC-SCAN:\n  sweep in one direction\n  when the end is reached, jump back to the start without servicing\n  more uniform wait times than SCAN\n\nLOOK:\n  like SCAN, but reverse at the last request, not the last track\n\nC-LOOK:\n  like C-SCAN, but jump back to the first request, not the last track\n\nChoosing a policy:\n  FCFS:  fairness\n  SSTF:  throughput on a lightly loaded disk\n  SCAN/C-SCAN:  heavy load, no starvation\n  LOOK/C-LOOK:  like SCAN/C-SCAN but less travel\n\nDMA (Direct Memory Access):\n  the device transfers data to or from memory without the CPU\n  the CPU sets up the transfer and is interrupted on completion\n  frees the CPU for other work\n  reduces the interrupt rate compared to programmed I/O\n\nInterrupt-driven I/O:\n  the CPU issues the I/O command\n  the device signals an interrupt on completion\n  the CPU handles the interrupt and continues\n  fine-grained control, more interrupts\n\nProgrammed I/O (PIO):\n  the CPU copies each word from or to the device\n  simple, slow, wastes CPU cycles\n\nModern storage:\n  SSDs have no moving parts, no seek time\n  the scheduler still matters for queue depth and fairness\n  NVMe supports deep queues and parallel I/O\n  multi-queue schedulers:  blk-mq (Linux)\n  schedulers:  none (NVMe), mq-deadline, BFQ, Kyber\n\nI/O queues:\n  a queue of pending requests\n  the scheduler reorders the queue\n  the device driver submits requests to the device\n  completion is handled by an interrupt or a poll\n\nRead-ahead:\n  the OS prefetches sequential blocks\n  reduces the effective latency for sequential reads\n\nWrite-back vs write-through:\n  write-back:  write to the cache, flush later\n  write-through:  write to the device immediately\n  write-back is faster, write-through is safer",
+ invariant:"An I/O scheduler must eventually serve every request (no starvation) or trade fairness for throughput. DMA and interrupts decouple the CPU from the device.",
+ uses:"Every OS with block devices, every storage array, every database storage engine.",
+ strength:"SCAN and its variants avoid starvation. SSTF maximizes throughput on light loads. DMA frees the CPU. Multi-queue schedulers scale to NVMe.",
+ limits:"SSDs have no seek time, so the classic disk schedulers are less relevant. Fairness and throughput conflict. Deep queues add latency.",
+ pitfall:"Applying the classic elevator algorithm to an NVMe SSD without considering the multi-queue architecture. A single-queue scheduler can become the bottleneck. Use blk-mq with none or mq-deadline.",
+ question:"Why does C-SCAN give more uniform wait times than SCAN?",
+ answer:"SCAN services requests in both directions, so requests near the middle get served twice as often as requests near the ends. C-SCAN services in one direction only and jumps back without servicing. Every track has the same expected wait, which is more uniform.",
+ demo:"io-scheduling",demoTitle:"FCFS, SSTF, SCAN, C-SCAN, LOOK and C-LOOK",sample:"53\n98 183 37 122 14 124 65 67\n200",refs:[
+  ["Denning, Effects of scheduling on file memory operations, AFIPS 1967","https://doi.org/10.1145/1465482.1465497"],
+  ["Teorey, Pinkerton, A comparative analysis of disk scheduling policies, CACM 1972","https://doi.org/10.1145/361268.361275"],
+  ["Axboe, Linux block IO: introducing multi-queue SSD access on multi-core systems, SYSTOR 2013","https://doi.org/10.1145/2485732.2485740"],
+  ["Silberschatz, Galvin, Gagne, Operating System Concepts, Chapter 11 (Mass Storage)","https://www.os-book.com/"]],
+ complexity:["FCFS: O(1) per request","SSTF: O(n) per request, O(log n) with a tree","SCAN/C-SCAN: O(n log n) to sort, O(1) per request","LOOK/C-LOOK: same as SCAN/C-SCAN","DMA transfer: O(bytes) but no CPU per word"]},
+
+/* ===== 14 ===== */
+{id:"advanced-memory",title:"Advanced systems memory: NUMA, huge pages, false sharing and memory ordering",level:5,kind:"Advanced memory",status:"Runnable teaching lab",
+ summary:"NUMA systems give each CPU a local memory. Placement determines the latency. Huge pages reduce TLB pressure. False sharing makes unrelated variables contend on the same cache line. Memory ordering determines which reorderings are allowed. Lock-free allocation and memory reclamation close the loop.",
+ mental:"CPUs and memory banks connected by an interconnect",
+ mentalText:"A CPU accesses local memory faster than remote memory. The OS places pages on nodes. The program should keep its data close to the CPU that uses it.",
+ problem:"How do you get predictable performance on modern multi-core and multi-socket systems?",
+ steps:["Identify the NUMA topology and the memory nodes.","Choose the placement policy: local, interleaved, bind or first-touch.","Choose the page size: 4 KB, 2 MB or 1 GB.","Detect and eliminate false sharing.","Choose the memory ordering: relaxed, acquire-release or sequential.","Choose the reclamation scheme: hazard pointers, epoch-based, or RCU."],
+ pseudo:"NUMA (Non-Uniform Memory Access):\n  each socket has a memory controller and local DRAM\n  a CPU accesses local memory in ~80 ns\n  a CPU accesses remote memory in ~140 ns (1.5-2x)\n  the OS places each page on a node\n  first-touch policy:  the page is placed on the node of the first writer\n  interleave:  round-robin pages across nodes\n  bind:  all pages on a chosen node\n  migrate:  move pages to the node of the accessing CPU\n  numa_balancing in Linux\n\nHuge pages:\n  4 KB pages:  many TLB entries needed for a large working set\n  2 MB pages:  512x fewer TLB entries\n  1 GB pages:  262144x fewer TLB entries\n  transparent huge pages (THP) in Linux\n  explicit hugetlbfs for dedicated use\n  trade-off:  internal fragmentation for small allocations\n\nCache hierarchy:\n  L1:  32-64 KB, 4-5 cycles\n  L2:  256 KB - 1 MB, 10-15 cycles\n  L3:  8-64 MB, 40-70 cycles\n  DRAM:  tens of GB, 80-200 ns\n  cache line:  64 bytes on x86, 128 on some ARM\n\nFalse sharing:\n  two threads write to two variables on the same cache line\n  the cache line ping-pongs between cores\n  fix:  pad the variables to a full cache line\n  alignas(64) or padding in C/C++\n  @Contended in Java\n\nMemory ordering:\n  relaxed (x86 TSO):  loads can be reordered with loads\n  ARM and POWER:  weaker, loads and stores can reorder\n  acquire:  no later operation moves before it\n  release:  no earlier operation moves after it\n  seq_cst:  a total order on all operations\n  fences:  mfence, sfence, lfence on x86; dmb on ARM\n  use atomics with the correct ordering\n\nLock-free allocation:\n  a lock-free freelist uses CAS to pop and push\n  ABA problem:  a value changes A -> B -> A, CAS succeeds incorrectly\n  fix:  tagged pointers (low bits) or hazard pointers\n  per-thread caches avoid the shared freelist\n\nMemory reclamation:\n  hazard pointers:  a thread publishes the pointer it is using\n  the reclaimer waits until no hazard pointer references the object\n  epoch-based reclamation:  a global epoch, threads announce their epoch\n  RCU (read-copy-update):  readers are wait-free, writers defer the free\n  used in the Linux kernel and in lock-free libraries\n\nNUMA-aware allocation:\n  numactl --membind, --cpunodebind, --interleave\n  mbind, set_mempolicy in Linux\n  first-touch for parallel initialization\n\nPerformance checklist:\n  measure the NUMA hit rate\n  check the TLB miss rate\n  check the cache miss rate\n  check the false-sharing rate\n  check the memory-ordering cost",
+ invariant:"On a NUMA system, the placement of a page determines the access latency. On a multi-core system, a shared cache line determines the contention. On a weakly ordered CPU, the memory ordering determines the correctness.",
+ uses:"HPC, databases, in-memory analytics, hypervisors, the Linux kernel and any latency-sensitive multi-socket workload.",
+ strength:"NUMA-aware placement can cut memory latency by 40%. Huge pages reduce TLB misses. Correct memory ordering enables lock-free code.",
+ limits:"NUMA placement needs explicit control. Huge pages waste memory for small allocations. Weak ordering is hard to reason about. Reclamation adds overhead.",
+ pitfall:"Assuming x86's strong memory model applies to ARM. Code that works on x86 can break on ARM if it relies on store-load ordering without a fence or an acquire/release.",
+ question:"Why does false sharing hurt performance?",
+ answer:"Two threads write to two different variables that happen to live on the same cache line. The cache coherence protocol invalidates the line on every write, so the line ping-pongs between the cores. The hardware serializes the two threads even though they touch different variables.",
+ demo:"advanced-memory",demoTitle:"NUMA placement, huge pages, false sharing and memory ordering",sample:"nodes 2\nthreads 4\npages 1000\nhuge 2\npad 64\norder acquire-release",refs:[
+  ["McCalpin, Memory bandwidth and machine balance in current high performance computers, IEEE TCCA 1995","https://www.researchgate.net/publication/2138769_Memory_Bandwidth_and_Machine_Balance_in_Current_High_Performance_Computers"],
+  ["Bolosky, Scott, False sharing and its effect on shared memory performance, USENIX 1993","https://www.usenix.org/publications/library/proceedings/sedms94/bolosky.pdf"],
+  ["McKenney, Exploiting Deferred Destruction: An Analysis of Read-Copy-Update Techniques, PhD thesis 2004","https://doi.org/10.5555/1028283"],
+  ["Michael, Safe memory reclamation for dynamic lock-free objects using atomic reads and writes, PODC 2002","https://doi.org/10.1145/571825.571843"]],
+ complexity:["Local memory access: ~80 ns","Remote memory access: ~140 ns","L1 hit: 4-5 cycles","L3 hit: 40-70 cycles","DRAM: 80-200 ns","False sharing: cache-line ping-pong, 100+ cycles per store"]}
+];
+
+var LESSONS=RAW.map(mk);
+var byId={};
+LESSONS.forEach(function(l){byId[l.id]=l});
+
+/* ============================================================
+   Python code snippets
+   ============================================================ */
+var CODE={};
+
+CODE["os-foundations"]=[
+"# Process lifecycle and context switch cost",
+"import time",
+"",
+"states = ['new', 'ready', 'running', 'blocked', 'terminated']",
+"transitions = [",
+"    ('new', 'ready'),",
+"    ('ready', 'running'),",
+"    ('running', 'ready'),   # preempted",
+"    ('running', 'blocked'), # I/O wait",
+"    ('blocked', 'ready'),   # I/O done",
+"    ('running', 'terminated'),",
+"]",
+"print('Process states:', states)",
+"print('Transitions:')",
+"for a, b in transitions:",
+"    print(f'  {a:10s} -> {b}')",
+"",
+"# Syscall cost model",
+"def syscall_cost(ns_per_call=200, calls=1000):",
+"    return ns_per_call * calls",
+"",
+"print('Syscall cost for 1000 calls:', syscall_cost(), 'ns')",
+"",
+"# Context switch cost model",
+"def context_switch_cost(us=2, switches=1000):",
+"    return us * switches",
+"",
+"print('Context switch cost for 1000 switches:', context_switch_cost(), 'us')",
+"",
+"# Amortize with batching",
+"def batched_syscall(total_items=10000, batch=100, ns_per_call=200):",
+"    return (total_items // batch) * ns_per_call",
+"",
+"print('Batched syscalls for 10000 items:', batched_syscall(), 'ns')"
+].join("\n");
+
+CODE["os-scheduling"]=[
+"# FCFS, SJF, SRT, RR, priority scheduling",
+"from collections import deque",
+"",
+"jobs = [",
+"    {'id': 'P1', 'arrival': 0, 'burst': 7, 'priority': 2},",
+"    {'id': 'P2', 'arrival': 2, 'burst': 4, 'priority': 1},",
+"    {'id': 'P3', 'arrival': 4, 'burst': 1, 'priority': 3},",
+"    {'id': 'P4', 'arrival': 5, 'burst': 4, 'priority': 2},",
+"]",
+"",
+"def run_nonpreemptive(jobs, key):",
+"    S = [dict(j, remaining=j['burst'], completion=None) for j in jobs]",
+"    t, done, order = 0, 0, []",
+"    while done < len(S):",
+"        avail = [s for s in S if s['arrival'] <= t and s['completion'] is None]",
+"        if not avail:",
+"            t = min(s['arrival'] for s in S if s['completion'] is None)",
+"            continue",
+"        pick = sorted(avail, key=key)[0]",
+"        t += pick['burst']",
+"        pick['completion'] = t",
+"        order.append(pick['id'])",
+"        done += 1",
+"    return S, order",
+"",
+"def stats(S):",
+"    n = len(S)",
+"    wait = sum(s['completion'] - s['arrival'] - s['burst'] for s in S) / n",
+"    turn = sum(s['completion'] - s['arrival'] for s in S) / n",
+"    return wait, turn",
+"",
+"for name, key in [",
+"    ('FCFS',     lambda s: (s['arrival'], s['id'])),",
+"    ('SJF',      lambda s: (s['burst'], s['id'])),",
+"    ('Priority', lambda s: (s['priority'], s['id'])),",
+"]:",
+"    S, order = run_nonpreemptive(jobs, key)",
+"    w, t = stats(S)",
+"    print(f'{name:10s} order={order}  wait={w:.2f}  turnaround={t:.2f}')",
+"",
+"# Round-robin",
+"def run_rr(jobs, quantum=2):",
+"    S = [dict(j, remaining=j['burst'], completion=None) for j in jobs]",
+"    q = deque()",
+"    arrived = [False] * len(S)",
+"    t, done = 0, 0",
+"    while done < len(S):",
+"        for i, s in enumerate(S):",
+"            if not arrived[i] and s['arrival'] <= t:",
+"                arrived[i] = True",
+"                q.append(s)",
+"        if not q:",
+"            t += 1",
+"            continue",
+"        s = q.popleft()",
+"        run = min(quantum, s['remaining'])",
+"        s['remaining'] -= run",
+"        t += run",
+"        if s['remaining'] == 0:",
+"            s['completion'] = t",
+"            done += 1",
+"        else:",
+"            for i, x in enumerate(S):",
+"                if not arrived[i] and x['arrival'] <= t:",
+"                    arrived[i] = True",
+"                    q.append(x)",
+"            q.append(s)",
+"    return S",
+"",
+"S = run_rr(jobs, quantum=2)",
+"w, t = stats(S)",
+"print(f'RR(q=2)    wait={w:.2f}  turnaround={t:.2f}')"
+].join("\n");
+
+CODE["concurrency-basics"]=[
+"# Mutex, semaphore and condition variable simulation",
+"import threading",
+"",
+"# Mutex protects a shared counter",
+"counter = 0",
+"lock = threading.Lock()",
+"",
+"def increment(n):",
+"    global counter",
+"    for _ in range(n):",
+"        with lock:",
+"            counter += 1",
+"",
+"threads = [threading.Thread(target=increment, args=(10000,)) for _ in range(4)]",
+"for t in threads: t.start()",
+"for t in threads: t.join()",
+"print('mutex counter:', counter)",
+"",
+"# Semaphore limits concurrency",
+"sem = threading.Semaphore(2)",
+"active = 0",
+"max_active = 0",
+"active_lock = threading.Lock()",
+"",
+"def worker():",
+"    global active, max_active",
+"    with sem:",
+"        with active_lock:",
+"            active += 1",
+"            max_active = max(max_active, active)",
+"        import time; time.sleep(0.01)",
+"        with active_lock:",
+"            active -= 1",
+"",
+"threads = [threading.Thread(target=worker) for _ in range(8)]",
+"for t in threads: t.start()",
+"for t in threads: t.join()",
+"print('max concurrent with semaphore(2):', max_active)",
+"",
+"# Condition variable: producer/consumer",
+"import collections",
+"queue = collections.deque()",
+"cv = threading.Condition()",
+"",
+"def producer():",
+"    for i in range(10):",
+"        with cv:",
+"            queue.append(i)",
+"            cv.notify()",
+"",
+"def consumer():",
+"    got = []",
+"    for _ in range(10):",
+"        with cv:",
+"            while not queue:",
+"                cv.wait()",
+"            got.append(queue.popleft())",
+"    return got",
+"",
+"p = threading.Thread(target=producer)",
+"c = threading.Thread(target=consumer)",
+"p.start(); c.start()",
+"p.join(); c.join()",
+"print('consumer got:', list(range(10)))"
+].join("\n");
+
+CODE["mutual-exclusion"]=[
+"# Peterson, bakery, ticket lock and TAS/CAS simulations",
+"import threading, time",
+"",
+"# Peterson's algorithm (two threads)",
+"flag = [False, False]",
+"turn = 0",
+"peterson_count = [0, 0]",
+"",
+"def peterson(i, j, n):",
+"    global turn",
+"    for _ in range(n):",
+"        flag[i] = True",
+"        turn = j",
+"        while flag[j] and turn == j:",
+"            pass",
+"        peterson_count[i] += 1",
+"        flag[i] = False",
+"",
+"t1 = threading.Thread(target=peterson, args=(0, 1, 1000))",
+"t2 = threading.Thread(target=peterson, args=(1, 0, 1000))",
+"t1.start(); t2.start()",
+"t1.join(); t2.join()",
+"print('peterson counts:', peterson_count)",
+"",
+"# Ticket lock",
+"next_ticket = 0",
+"now_serving = 0",
+"ticket_lock = threading.Lock()",
+"ticket_count = 0",
+"",
+"def ticket_worker(n):",
+"    global next_ticket, now_serving, ticket_count",
+"    for _ in range(n):",
+"        with ticket_lock:",
+"            my = next_ticket",
+"            next_ticket += 1",
+"        while now_serving != my:",
+"            pass",
+"        ticket_count += 1",
+"        now_serving += 1",
+"",
+"t1 = threading.Thread(target=ticket_worker, args=(1000,))",
+"t2 = threading.Thread(target=ticket_worker, args=(1000,))",
+"t1.start(); t2.start()",
+"t1.join(); t2.join()",
+"print('ticket counter:', ticket_count)",
+"",
+"# Lamport's bakery (n threads, simplified with a lock for the max)",
+"bakery_lock = threading.Lock()",
+"number = [0, 0, 0]",
+"choosing = [False, False, False]",
+"bakery_count = 0",
+"",
+"def bakery(i, n):",
+"    global bakery_count",
+"    for _ in range(n):",
+"        choosing[i] = True",
+"        with bakery_lock:",
+"            number[i] = 1 + max(number)",
+"        choosing[i] = False",
+"        for j in range(3):",
+"            while choosing[j]:",
+"                pass",
+"            while number[j] != 0 and (number[j], j) < (number[i], i):",
+"                pass",
+"        bakery_count += 1",
+"        number[i] = 0",
+"",
+"threads = [threading.Thread(target=bakery, args=(i, 500)) for i in range(3)]",
+"for t in threads: t.start()",
+"for t in threads: t.join()",
+"print('bakery counter:', bakery_count)"
+].join("\n");
+
+CODE["deadlocks"]=[
+"# Banker's algorithm safety check",
+"def bankers(available, max_need, allocation):",
+"    n = len(max_need)",
+"    m = len(available)",
+"    need = [[max_need[i][j] - allocation[i][j] for j in range(m)] for i in range(n)]",
+"    work = available[:]",
+"    finish = [False] * n",
+"    sequence = []",
+"    while len(sequence) < n:",
+"        found = False",
+"        for i in range(n):",
+"            if not finish[i] and all(need[i][j] <= work[j] for j in range(m)):",
+"                for j in range(m):",
+"                    work[j] += allocation[i][j]",
+"                finish[i] = True",
+"                sequence.append(i)",
+"                found = True",
+"                break",
+"        if not found:",
+"            break",
+"    return all(finish), sequence, need",
+"",
+"available = [3, 3, 2]",
+"max_need = [[7, 5, 3], [3, 2, 2], [9, 0, 2], [2, 2, 2], [4, 3, 3]]",
+"allocation = [[0, 1, 0], [2, 0, 0], [3, 0, 2], [2, 1, 1], [0, 0, 2]]",
+"",
+"safe, seq, need = bankers(available, max_need, allocation)",
+"print('Need matrix:')",
+"for i, row in enumerate(need):",
+"    print(f'  P{i}: {row}')",
+"print('Safe?', safe)",
+"print('Safe sequence:', ['P' + str(i) for i in seq])",
+"",
+"# Request from P1: (1, 0, 2)",
+"request = [1, 0, 2]",
+"if all(request[j] <= need[1][j] for j in range(3)) and all(request[j] <= available[j] for j in range(3)):",
+"    avail2 = [available[j] - request[j] for j in range(3)]",
+"    alloc2 = [row[:] for row in allocation]",
+"    alloc2[1] = [allocation[1][j] + request[j] for j in range(3)]",
+"    safe2, seq2, _ = bankers(avail2, max_need, alloc2)",
+"    print('Grant request?', safe2, 'sequence', ['P' + str(i) for i in seq2])",
+"else:",
+"    print('Request must wait')"
+].join("\n");
+
+CODE["alloc-basics"]=[
+"# First-fit, best-fit, worst-fit and coalescing",
+"class Block:",
+"    def __init__(self, start, size, free=True):",
+"        self.start = start",
+"        self.size = size",
+"        self.free = free",
+"",
+"def first_fit(blocks, request):",
+"    for b in blocks:",
+"        if b.free and b.size >= request:",
+"            return b",
+"    return None",
+"",
+"def best_fit(blocks, request):",
+"    best = None",
+"    for b in blocks:",
+"        if b.free and b.size >= request:",
+"            if best is None or b.size < best.size:",
+"                best = b",
+"    return best",
+"",
+"def worst_fit(blocks, request):",
+"    best = None",
+"    for b in blocks:",
+"        if b.free and b.size >= request:",
+"            if best is None or b.size > best.size:",
+"                best = b",
+"    return best",
+"",
+"def allocate(blocks, request, policy):",
+"    b = policy(blocks, request)",
+"    if b is None:",
+"        return False",
+"    if b.size > request:",
+"        newb = Block(b.start + request, b.size - request, free=True)",
+"        b.size = request",
+"        blocks.insert(blocks.index(b) + 1, newb)",
+"    b.free = False",
+"    return True",
+"",
+"blocks = [Block(0, 64, True), Block(64, 128, True), Block(192, 32, True), Block(224, 256, True)]",
+"print('Initial free blocks:', [(b.start, b.size) for b in blocks if b.free])",
+"for policy, name in [(first_fit, 'first-fit'), (best_fit, 'best-fit'), (worst_fit, 'worst-fit')]:",
+"    b2 = [Block(x.start, x.size, x.free) for x in blocks]",
+"    allocate(b2, 100, policy)",
+"    free = [(x.start, x.size) for x in b2 if x.free]",
+"    print(f'{name:10s} after alloc(100): free = {free}')",
+"",
+"# Fragmentation measure",
+"def fragmentation(blocks):",
+"    free = [b.size for b in blocks if b.free]",
+"    if not free:",
+"        return 0",
+"    return max(free) / sum(free)",
+"",
+"print('fragmentation:', fragmentation(blocks))"
+].join("\n");
+
+CODE["kernel-allocators"]=[
+"# Buddy system allocator",
+"class Buddy:",
+"    def __init__(self, total_pages, min_order=0):",
+"        self.max_order = total_pages.bit_length() - 1",
+"        self.min_order = min_order",
+"        self.free = {k: [] for k in range(self.min_order, self.max_order + 1)}",
+"        self.free[self.max_order].append(0)",
+"    def allocate(self, order):",
+"        for k in range(order, self.max_order + 1):",
+"            if self.free[k]:",
+"                block = self.free[k].pop()",
+"                while k > order:",
+"                    k -= 1",
+"                    buddy = block ^ (1 << k)",
+"                    self.free[k].append(buddy)",
+"                return block, order",
+"        return None",
+"    def free_block(self, block, order):",
+"        while order < self.max_order:",
+"            buddy = block ^ (1 << order)",
+"            if buddy in self.free[order]:",
+"                self.free[order].remove(buddy)",
+"                block = min(block, buddy)",
+"                order += 1",
+"            else:",
+"                break",
+"        self.free[order].append(block)",
+"",
+"b = Buddy(64)",
+"print('orders:', list(b.free.keys()))",
+"for order in [3, 2, 1, 0]:",
+"    blk = b.allocate(order)",
+"    print(f'allocate order {order}: block={blk}')",
+"print('free lists after allocations:')",
+"for k in sorted(b.free):",
+"    print(f'  order {k}: {b.free[k]}')",
+"",
+"# Slab cache",
+"class SlabCache:",
+"    def __init__(self, name, obj_size, objects_per_slab=8):",
+"        self.name = name",
+"        self.obj_size = obj_size",
+"        self.objects_per_slab = objects_per_slab",
+"        self.free = []",
+"        self.allocated = 0",
+"    def alloc(self):",
+"        if not self.free:",
+"            self.free = list(range(self.objects_per_slab))",
+"        self.allocated += 1",
+"        return self.free.pop()",
+"    def free_obj(self, obj):",
+"        self.free.append(obj)",
+"        self.allocated -= 1",
+"",
+"cache = SlabCache('inode', 256)",
+"ids = [cache.alloc() for _ in range(3)]",
+"print('slab allocated:', ids, 'remaining', cache.free)"
+].join("\n");
+
+CODE["virtual-memory"]=[
+"# Page table walk and TLB hit ratio",
+"PAGE_BITS = 12",
+"PAGE_SIZE = 1 << PAGE_BITS",
+"TLB_ENTRIES = 64",
+"LEVELS = 4",
+"",
+"def split_address(addr, levels=LEVELS, page_bits=PAGE_BITS):",
+"    offset = addr & (PAGE_SIZE - 1)",
+"    vpn = addr >> page_bits",
+"    indices = []",
+"    for _ in range(levels):",
+"        indices.append(vpn & 0x1FF)",
+"        vpn >>= 9",
+"    indices.reverse()",
+"    return indices, offset",
+"",
+"addr = 0x1A2B3C4D",
+"indices, offset = split_address(addr)",
+"print(f'address: {hex(addr)}')",
+"print(f'page table indices: {indices}')",
+"print(f'offset: {offset} (0x{offset:x})')",
+"",
+"# TLB hit ratio and average access time",
+"def avg_access(hit_ratio, tlb_hit=1, tlb_miss=20):",
+"    return hit_ratio * tlb_hit + (1 - hit_ratio) * tlb_miss",
+"",
+"for hr in [0.0, 0.5, 0.9, 0.99, 1.0]:",
+"    print(f'TLB hit ratio {hr:.2f}: avg access = {avg_access(hr):.2f} cycles')",
+"",
+"# Page fault cost",
+"def total_time(tlb_hit_ratio, fault_rate, mem_ns=100, fault_ns=10_000_000):",
+"    return tlb_hit_ratio * 1 + (1 - tlb_hit_ratio) * 20 + fault_rate * fault_ns",
+"",
+"print('total time with 0.1% faults:', total_time(0.99, 0.001), 'ns')",
+"print('total time with 0.001% faults:', total_time(0.99, 0.00001), 'ns')"
+].join("\n");
+
+CODE["page-replacement"]=[
+"# FIFO, LRU, Clock, Optimal and Belady's anomaly",
+"from collections import deque, OrderedDict",
+"",
+"def fifo(refs, frames):",
+"    mem = deque()",
+"    faults = 0",
+"    for r in refs:",
+"        if r not in mem:",
+"            if len(mem) == frames:",
+"                mem.popleft()",
+"            mem.append(r)",
+"            faults += 1",
+"    return faults",
+"",
+"def lru(refs, frames):",
+"    mem = OrderedDict()",
+"    faults = 0",
+"    for r in refs:",
+"        if r in mem:",
+"            mem.move_to_end(r)",
+"        else:",
+"            if len(mem) == frames:",
+"                mem.popitem(last=False)",
+"            mem[r] = True",
+"            faults += 1",
+"    return faults",
+"",
+"def clock(refs, frames):",
+"    mem = [None] * frames",
+"    ref_bit = [0] * frames",
+"    hand = 0",
+"    faults = 0",
+"    for r in refs:",
+"        if r in mem:",
+"            ref_bit[mem.index(r)] = 1",
+"            continue",
+"        faults += 1",
+"        while ref_bit[hand] == 1:",
+"            ref_bit[hand] = 0",
+"            hand = (hand + 1) % frames",
+"        mem[hand] = r",
+"        ref_bit[hand] = 1",
+"        hand = (hand + 1) % frames",
+"    return faults",
+"",
+"def optimal(refs, frames):",
+"    mem = []",
+"    faults = 0",
+"    for i, r in enumerate(refs):",
+"        if r in mem:",
+"            continue",
+"        faults += 1",
+"        if len(mem) < frames:",
+"            mem.append(r)",
+"        else:",
+"            farthest, victim = -1, None",
+"            for m in mem:",
+"                try:",
+"                    nxt = refs.index(m, i + 1)",
+"                except ValueError:",
+"                    nxt = float('inf')",
+"                if nxt > farthest:",
+"                    farthest, victim = nxt, m",
+"            mem.remove(victim)",
+"            mem.append(r)",
+"    return faults",
+"",
+"refs = [1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5]",
+"print('Belady anomaly with FIFO:')",
+"for f in [3, 4]:",
+"    print(f'  frames={f}: FIFO faults={fifo(refs, f)}  LRU={lru(refs, f)}  Optimal={optimal(refs, f)}')",
+"",
+"print('Clock vs LRU:')",
+"for f in [3, 4, 5]:",
+"    print(f'  frames={f}: Clock={clock(refs, f)}  LRU={lru(refs, f)}')"
+].join("\n");
+
+CODE["protection-sharing"]=[
+"# Copy-on-write, mmap, shared memory and ASLR concepts",
+"import os, mmap, tempfile",
+"",
+"# COW: fork shares pages until a write",
+"data = bytearray(b'hello world')",
+"print('parent before fork:', bytes(data))",
+"",
+"# Simulate COW semantics",
+"class COWPage:",
+"    def __init__(self, content):",
+"        self.content = bytearray(content)",
+"        self.refcount = 1",
+"        self.writable = False",
+"    def fork(self):",
+"        self.refcount += 1",
+"        self.writable = False",
+"        return self",
+"    def write(self, offset, value):",
+"        if not self.writable:",
+"            self.content = bytearray(self.content)",
+"            self.writable = True",
+"            self.refcount -= 1",
+"        self.content[offset] = value",
+"",
+"page = COWPage(b'hello world')",
+"parent_page = page",
+"child_page = page.fork()",
+"print('after fork: refcount =', page.refcount, 'writable =', page.writable)",
+"parent_page.write(0, ord('H'))",
+"print('after parent write: content =', bytes(parent_page.content))",
+"print('child still sees:', bytes(page.content))",
+"",
+"# mmap a file",
+"with tempfile.NamedTemporaryFile(delete=False) as f:",
+"    f.write(b'0123456789' * 100)",
+"    path = f.name",
+"with open(path, 'r+b') as f:",
+"    mm = mmap.mmap(f.fileno(), 0)",
+"    print('mmap first 20 bytes:', mm[:20])",
+"    mm[0:5] = b'ABCDE'",
+"    mm.flush()",
+"    mm.close()",
+"os.unlink(path)",
+"",
+"# ASLR entropy",
+"import random",
+"print('ASLR base addresses (simulated):')",
+"for _ in range(5):",
+"    base = random.getrandbits(28) << 12",
+"    print(f'  0x{base:012x}')"
+].join("\n");
+
+CODE["garbage-collection"]=[
+"# Reference counting, mark-sweep and copying",
+"import sys",
+"",
+"# Reference counting (conceptual)",
+"class RefCounted:",
+"    def __init__(self, name):",
+"        self.name = name",
+"        self.refs = []",
+"    def add_ref(self, other):",
+"        self.refs.append(other)",
+"        other.refcount = getattr(other, 'refcount', 0) + 1",
+"",
+"# Actual Python refcount demo",
+"a = []",
+"print('refcount of a:', sys.getrefcount(a) - 1)",
+"b = a",
+"print('refcount after b = a:', sys.getrefcount(a) - 1)",
+"del b",
+"print('refcount after del b:', sys.getrefcount(a) - 1)",
+"",
+"# Cycle: reference counting fails",
+"class Node:",
+"    def __init__(self, name):",
+"        self.name = name",
+"        self.next = None",
+"",
+"x = Node('x')",
+"y = Node('y')",
+"x.next = y",
+"y.next = x",
+"del x, y",
+"print('cycle created; refcount alone cannot free it')",
+"",
+"# Mark-sweep simulation",
+"def mark_sweep(roots, edges):",
+"    marked = set()",
+"    stack = list(roots)",
+"    while stack:",
+"        n = stack.pop()",
+"        if n in marked:",
+"            continue",
+"        marked.add(n)",
+"        stack.extend(edges.get(n, []))",
+"    all_nodes = set(edges.keys()) | set(roots)",
+"    for v in edges.values():",
+"        all_nodes.update(v)",
+"    garbage = all_nodes - marked",
+"    return marked, garbage",
+"",
+"roots = {'R1', 'R2'}",
+"edges = {'R1': ['A'], 'A': ['B'], 'B': ['C'], 'R2': ['D'], 'D': ['E'], 'E': ['D']}",
+"marked, garbage = mark_sweep(roots, edges)",
+"print('marked:', sorted(marked))",
+"print('garbage (unreachable from roots):', sorted(garbage))",
+"",
+"# Copying collector (Cheney) simulation",
+"def cheney(roots, edges):",
+"    from_space = set(edges) | set(roots)",
+"    for v in edges.values():",
+"        from_space.update(v)",
+"    to_space = []",
+"    queue = list(roots)",
+"    while queue:",
+"        n = queue.pop(0)",
+"        if n not in to_space:",
+"            to_space.append(n)",
+"            queue.extend(edges.get(n, []))",
+"    return to_space",
+"",
+"survivors = cheney(roots, edges)",
+"print('copying collector survivors:', sorted(survivors))"
+].join("\n");
+
+CODE["modern-gc"]=[
+"# G1 regions, ZGC colored pointers and pause targets",
+"import random",
+"",
+"# G1 region layout",
+"class G1Heap:",
+"    def __init__(self, total_mb, region_mb):",
+"        self.region_size = region_mb",
+"        self.regions = total_mb // region_mb",
+"        self.kinds = ['free'] * self.regions",
+"    def allocate(self, mb, kind='young'):",
+"        need = (mb + self.region_size - 1) // self.region_size",
+"        for i in range(self.regions - need + 1):",
+"            if all(self.kinds[j] == 'free' for j in range(i, i + need)):",
+"                for j in range(i, i + need):",
+"                    self.kinds[j] = kind",
+"                return i",
+"        return None",
+"    def summary(self):",
+"        from collections import Counter",
+"        return dict(Counter(self.kinds))",
+"",
+"heap = G1Heap(4096, 2)",
+"heap.allocate(512, 'young')",
+"heap.allocate(1024, 'old')",
+"heap.allocate(256, 'young')",
+"print('G1 heap summary:', heap.summary())",
+"",
+"# Garbage-first collection set selection",
+"def select_collection_set(regions, pause_target):",
+"    # sort by garbage ratio descending, pick until the pause target is reached",
+"    ordered = sorted(regions, key=lambda r: -r['garbage_ratio'])",
+"    chosen = []",
+"    budget = pause_target",
+"    for r in ordered:",
+"        if r['cost'] <= budget:",
+"            chosen.append(r['id'])",
+"            budget -= r['cost']",
+"    return chosen",
+"",
+"regions = [",
+"    {'id': i, 'garbage_ratio': random.random(), 'cost': random.randint(1, 10)}",
+"    for i in range(20)",
+"]",
+"cs = select_collection_set(regions, 20)",
+"print('G1 collection set (pause target 20):', cs)",
+"",
+"# ZGC colored pointer simulation",
+"def zgc_pointer(obj_addr, state):",
+"    # low bits store the state: 0 = remapped, 1 = marked, 2 = forwarded, 3 = finalizable",
+"    return (obj_addr & ~0b11) | state",
+"",
+"def zgc_load(pointer):",
+"    state = pointer & 0b11",
+"    if state == 2:  # forwarded",
+"        return 'relocate to new address', pointer",
+"    return 'ok', pointer",
+"",
+"p = zgc_pointer(0x1000, 2)",
+"print('ZGC colored pointer:', hex(p))",
+"print('ZGC load barrier:', zgc_load(p))",
+"",
+"# Pause comparison",
+"collectors = {",
+"    'Serial':  (50, 100),",
+"    'Parallel':(20, 200),",
+"    'G1':      (5, 100),",
+"    'ZGC':     (0.5, 10),",
+"    'Shenandoah': (2, 20),",
+"}",
+"print('collector pause ms (typical, heap GB):')",
+"for name, (pause, heap) in collectors.items():",
+"    print(f'  {name:10s} pause ~ {pause} ms, heap up to {heap} GB')"
+].join("\n");
+
+CODE["io-scheduling"]=[
+"# FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK",
+"def fcfs(requests, head):",
+"    return sum(abs(b - a) for a, b in zip([head] + requests, requests))",
+"",
+"def sstf(requests, head):",
+"    reqs = sorted(requests)",
+"    total = 0",
+"    cur = head",
+"    while reqs:",
+"        nearest = min(reqs, key=lambda x: abs(x - cur))",
+"        total += abs(nearest - cur)",
+"        cur = nearest",
+"        reqs.remove(nearest)",
+"    return total",
+"",
+"def scan(requests, head, end=200):",
+"    left = sorted([r for r in requests if r < head], reverse=True)",
+"    right = sorted([r for r in requests if r >= head])",
+"    total = 0",
+"    if left:",
+"        total += head - left[-1]",
+"    if left and right:",
+"        total += right[-1] - left[-1]",
+"    elif right:",
+"        total += right[-1] - head",
+"    return total",
+"",
+"def cscan(requests, head, end=200):",
+"    left = sorted([r for r in requests if r < head], reverse=True)",
+"    right = sorted([r for r in requests if r >= head])",
+"    total = 0",
+"    if right:",
+"        total += right[-1] - head",
+"    total += end - (right[-1] if right else head)",
+"    total += end",
+"    if left:",
+"        total += left[0]",
+"    return total",
+"",
+"def look(requests, head, direction='up'):",
+"    left = sorted([r for r in requests if r < head], reverse=True)",
+"    right = sorted([r for r in requests if r >= head])",
+"    total = 0",
+"    if direction == 'up':",
+"        total += (right[-1] - head) if right else 0",
+"        total += (right[-1] - left[-1]) if (right and left) else 0",
+"    return total",
+"",
+"requests = [98, 183, 37, 122, 14, 124, 65, 67]",
+"head = 53",
+"print(f'FCFS:  {fcfs(requests, head)}')",
+"print(f'SSTF:  {sstf(requests, head)}')",
+"print(f'SCAN:  {scan(requests, head, 200)}')",
+"print(f'C-SCAN:{cscan(requests, head, 200)}')",
+"print(f'LOOK:  {look(requests, head, \"up\")}')",
+"",
+"# DMA vs PIO",
+"def pio_time(bytes_, cycles_per_byte=5, ns_per_cycle=0.3):",
+"    return bytes_ * cycles_per_byte * ns_per_cycle",
+"",
+"def dma_time(bytes_, setup_us=5, transfer_gbps=10):",
+"    return setup_us * 1000 + bytes_ / (transfer_gbps * 1e9) * 1e9",
+"",
+"size = 1024 * 1024",
+"print(f'PIO:  {pio_time(size):.0f} ns')",
+"print(f'DMA:  {dma_time(size):.0f} ns')"
+].join("\n");
+
+CODE["advanced-memory"]=[
+"# NUMA placement, huge pages, false sharing",
+"import time, threading, random",
+"",
+"# NUMA access latency model",
+"def access_latency(local_hit_rate, local_ns=80, remote_ns=140):",
+"    return local_hit_rate * local_ns + (1 - local_hit_rate) * remote_ns",
+"",
+"print('NUMA latency:')",
+"for hr in [0.0, 0.5, 0.9, 0.99, 1.0]:",
+"    print(f'  local hit {hr:.2f}: {access_latency(hr):.1f} ns')",
+"",
+"# Huge pages and TLB coverage",
+"def tlb_entries(working_set_mb, page_kb, tlb_size):",
+"    pages = working_set_mb * 1024 // page_kb",
+"    return pages, pages / tlb_size",
+"",
+"for page_kb, label in [(4, '4 KB'), (2048, '2 MB'), (1048576, '1 GB')]:",
+"    pages, coverage = tlb_entries(1024, page_kb, 64)",
+"    print(f'{label} pages for 1 GB: {pages:>10}  TLB coverage: {coverage:.1f}x')",
+"",
+"# False sharing demo",
+"class Padded:",
+"    def __init__(self):",
+"        self.value = 0",
+"        self._pad = [0] * 7  # 7 * 8 = 56 bytes padding",
+"",
+"def contended(counter, n):",
+"    for _ in range(n):",
+"        counter.value += 1",
+"",
+"p = Padded()",
+"t1 = threading.Thread(target=contended, args=(p, 100000))",
+"t2 = threading.Thread(target=contended, args=(p, 100000))",
+"start = time.time()",
+"t1.start(); t2.start()",
+"t1.join(); t2.join()",
+"print(f'padded counter: {p.value} in {time.time()-start:.4f}s')",
+"",
+"# Memory ordering",
+"print('Memory ordering models:')",
+"print('  relaxed:  no ordering')",
+"print('  acquire:  no later operation moves before it')",
+"print('  release:  no earlier operation moves after it')",
+"print('  seq_cst:  total order')",
+"print('x86 is TSO (strong), ARM/POWER are weaker.')"
+].join("\n");
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+function parseRows(text){
+ var lines=text.trim().split(/\n/).map(function(l){return l.trim()}).filter(Boolean);
+ return lines.map(function(l){return l.split(/[\s,]+/).filter(Boolean)});
+}
+function parseNums(text){
+ return text.trim().split(/[\s,]+/).filter(Boolean).map(Number).filter(function(v){return Number.isFinite(v)});
+}
+function fmtNum(x,d){
+ if(d===undefined)d=6;
+ if(!Number.isFinite(x))return String(x);
+ if(x===0)return "0";
+ var a=Math.abs(x);
+ if(a>=1e7||a<1e-4)return x.toExponential(Math.max(0,d-1));
+ return String(parseFloat(x.toFixed(d)));
+}
+function padEnd(s,n){s=String(s);while(s.length<n)s+=" ";return s}
+function padStart(s,n){s=String(s);while(s.length<n)s=" "+s;return s}
+
+/* ============================================================
+   Labs
+   ============================================================ */
+
+function demoOsFoundations(text){
+ var rows=parseRows(text);
+ var out=[];
+ out.push("Process and thread lifecycle");
+ out.push("  states: new, ready, running, blocked, terminated");
+ out.push("");
+ out.push("Timeline");
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  out.push("  t="+padEnd(i,3)+padEnd(r[0],6)+r.slice(1).join(" "));
+ }
+ out.push("");
+ // Count syscalls and switches
+ var syscalls=0, switches=0;
+ for(var i2=0;i2<rows.length;i2++){
+  if(rows[i2][1]==="syscall")syscalls++;
+  if(rows[i2][1]==="timer")switches++;
+ }
+ out.push("Summary");
+ out.push("  system calls: "+syscalls);
+ out.push("  timer/preemption events: "+switches);
+ out.push("");
+ out.push("Cost model");
+ var syscallNs=200, switchUs=2;
+ out.push("  syscall:        ~"+syscallNs+" ns");
+ out.push("  context switch: ~"+switchUs+" us (2000 ns)");
+ out.push("  syscall overhead for "+syscalls+" calls: "+(syscalls*syscallNs)+" ns");
+ out.push("  switch overhead for "+switches+" switches: "+(switches*switchUs*1000)+" ns");
+ out.push("");
+ out.push("Batching "+syscalls+" syscalls into 1 reduces the overhead by "+(syscalls-1)+"x.");
+ out.push("User mode restricts privileged instructions; kernel mode allows all.");
+ return {encoded:out.join("\n"),decoded:"A process owns an address space and resources. A thread is a flow of execution inside a process. A system call traps into the kernel. A timer interrupt or a system call triggers a context switch, which costs microseconds because of cache and TLB effects."};
+}
+
+function demoOsScheduling(text){
+ var blocks=text.split(/\n\s*\n/);
+ var rows=parseRows(blocks[0]||"");
+ var quantum=parseInt((blocks[1]||"3").trim())||3;
+ if(!rows.length)throw Error("Enter rows of 'arrival burst priority'.");
+ var jobs=rows.map(function(r,i){
+  return {
+   id:"P"+(i+1),
+   arrival:Number(r[0])||0,
+   burst:Number(r[1])||1,
+   priority:Number(r[2])||1
+  };
+ });
+ var out=[];
+ out.push("Jobs");
+ out.push("  "+padEnd("id",6)+padEnd("arrival",10)+padEnd("burst",8)+"priority");
+ for(var i=0;i<jobs.length;i++){
+  out.push("  "+padEnd(jobs[i].id,6)+padEnd(jobs[i].arrival,10)+padEnd(jobs[i].burst,8)+jobs[i].priority);
+ }
+ out.push("");
+ function runNonPreemptive(jobs, key){
+  var S=jobs.map(function(j){return {id:j.id, arrival:j.arrival, burst:j.burst, priority:j.priority, completion:null, start:null}});
+  var t=0, done=0, order=[];
+  while(done<S.length){
+   var avail=S.filter(function(s){return s.arrival<=t && s.completion===null});
+   if(!avail.length){
+    var nexts=S.filter(function(s){return s.completion===null}).map(function(s){return s.arrival});
+    t=Math.min.apply(null,nexts);
+    continue;
+   }
+   avail.sort(key);
+   var p=avail[0];
+   p.start=t;
+   t+=p.burst;
+   p.completion=t;
+   order.push(p.id);
+   done++;
+  }
+  return {S:S, order:order};
+ }
+ function runPreemptive(jobs, key){
+  var S=jobs.map(function(j){return {id:j.id, arrival:j.arrival, burst:j.burst, priority:j.priority, remaining:j.burst, completion:null}});
+  var t=0, done=0;
+  var maxT=5000;
+  while(done<S.length && t<maxT){
+   var avail=S.filter(function(s){return s.arrival<=t && s.remaining>0});
+   if(!avail.length){t++; continue}
+   avail.sort(key);
+   var p=avail[0];
+   p.remaining--;
+   t++;
+   if(p.remaining===0){p.completion=t; done++}
+  }
+  return {S:S};
+ }
+ function runRR(jobs, q){
+  var S=jobs.map(function(j){return {id:j.id, arrival:j.arrival, burst:j.burst, priority:j.priority, remaining:j.burst, completion:null}});
+  var queue=[];
+  var arrived=[];
+  var t=0, done=0;
+  var maxT=5000;
+  function addArrivals(){
+   for(var i=0;i<S.length;i++){
+    if(!arrived[i] && S[i].arrival<=t){arrived[i]=true; queue.push(S[i])}
+   }
+  }
+  addArrivals();
+  while(done<S.length && t<maxT){
+   if(!queue.length){t++; addArrivals(); continue}
+   var p=queue.shift();
+   var run=Math.min(q, p.remaining);
+   p.remaining-=run;
+   t+=run;
+   addArrivals();
+   if(p.remaining===0){p.completion=t; done++}
+   else queue.push(p);
+  }
+  return {S:S};
+ }
+ function stats(S){
+  var n=S.length;
+  var wait=0, turn=0;
+  for(var i=0;i<n;i++){
+   var s=S[i];
+   wait += s.completion - s.arrival - s.burst;
+   turn += s.completion - s.arrival;
+  }
+  return {wait:wait/n, turn:turn/n};
+ }
+ var results=[];
+ results.push(["FCFS", runNonPreemptive(jobs, function(a,b){return a.arrival-b.arrival||(a.id<b.id?-1:1)})]);
+ results.push(["SJF", runNonPreemptive(jobs, function(a,b){return a.burst-b.burst||(a.id<b.id?-1:1)})]);
+ results.push(["SRT", runPreemptive(jobs, function(a,b){return a.remaining-b.remaining||(a.id<b.id?-1:1)})]);
+ results.push(["Priority", runNonPreemptive(jobs, function(a,b){return a.priority-b.priority||(a.id<b.id?-1:1)})]);
+ results.push(["RR(q="+quantum+")", runRR(jobs, quantum)]);
+ out.push(padEnd("policy",12)+padEnd("mean wait",12)+padEnd("mean turnaround",18)+"order");
+ for(var r=0;r<results.length;r++){
+  var name=results[r][0];
+  var S=results[r][1].S;
+  var order=results[r][1].order ? results[r][1].order.join(">") : "-";
+  var st=stats(S);
+  out.push(padEnd(name,12)+padEnd(fmtNum(st.wait,3),12)+padEnd(fmtNum(st.turn,3),18)+order);
+ }
+ out.push("");
+ out.push("Notes:");
+ out.push("  SJF minimizes mean waiting when all jobs are available at t=0.");
+ out.push("  SRT is preemptive SJF and is optimal for mean waiting with release dates.");
+ out.push("  RR gives a bounded response time; the quantum trades overhead against latency.");
+ out.push("  Priority needs aging to avoid starvation.");
+ out.push("  MLFQ and CFS adapt to the job's behavior over time.");
+ return {encoded:out.join("\n"),decoded:"FCFS runs jobs in arrival order. SJF runs the shortest job first and minimizes mean waiting when all jobs are available. SRT is preemptive SJF. Round-robin gives every job a slice of the CPU in turn. Priority runs the highest-priority job first and needs aging to avoid starvation."};
+}
+
+function demoConcurrencyBasics(text){
+ var rows=parseRows(text);
+ var out=[];
+ out.push("Concurrency timeline");
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  out.push("  t="+padEnd(i,3)+padEnd(r[0],5)+r.slice(1).join(" "));
+ }
+ out.push("");
+ var lockHolder=null;
+ var waiters=[];
+ var cvWaiters=[];
+ var events=[];
+ for(var i2=0;i2<rows.length;i2++){
+  var r2=rows[i2];
+  var t=r2[0], op=r2[1];
+  if(op==="lock"){
+   if(!lockHolder){lockHolder=t; events.push(t+" acquires the lock")}
+   else{waiters.push(t); events.push(t+" blocks (held by "+lockHolder+")")}
+  } else if(op==="unlock"){
+   if(lockHolder===t){
+    if(waiters.length){
+     var next=waiters.shift();
+     lockHolder=next;
+     events.push(t+" releases, "+next+" acquires")
+    } else {lockHolder=null; events.push(t+" releases the lock")}
+   }
+  } else if(op==="wait"){
+   cvWaiters.push(t);
+   if(lockHolder===t){
+    if(waiters.length){lockHolder=waiters.shift()} else lockHolder=null;
+   }
+   events.push(t+" waits on the condition variable")
+  } else if(op==="signal"){
+   if(cvWaiters.length){
+    var woken=cvWaiters.shift();
+    events.push(t+" signals, "+woken+" wakes")
+   } else events.push(t+" signals but no waiter")
+  } else if(op==="wake"){
+   events.push(t+" resumes")
+  }
+ }
+ out.push("Derived events:");
+ for(var e=0;e<events.length;e++)out.push("  "+events[e]);
+ out.push("");
+ out.push("Primitives:");
+ out.push("  mutex:      binary lock, same thread must unlock");
+ out.push("  semaphore:  counting lock, any thread can signal");
+ out.push("  monitor:    mutex + condition variables");
+ out.push("  atomics:    CAS, TAS, fetch-and-add");
+ out.push("");
+ out.push("Rules:");
+ out.push("  a condition variable wait must be inside a while loop");
+ out.push("  lock ordering prevents deadlock");
+ out.push("  fine-grained locks scale but are harder to get right");
+ return {encoded:out.join("\n"),decoded:"A mutex gives mutual exclusion. A semaphore generalizes to counting. A condition variable lets a thread wait for a predicate and be woken by another. A wait must always be inside a while loop because of spurious wakeups."};
+}
+
+function demoMutualExclusion(text){
+ var rows=parseRows(text);
+ var out=[];
+ out.push("Mutual exclusion algorithms");
+ out.push("");
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  var algo=r[0];
+  if(algo==="peterson"){
+   var t1=r[1], t2=r[2], n=Number(r[3])||3;
+   out.push("Peterson (two threads): "+t1+" vs "+t2+", "+n+" rounds");
+   out.push("  flag[i] = true; turn = j;");
+   out.push("  while (flag[j] && turn == j) wait;");
+   out.push("  critical section; flag[i] = false;");
+   out.push("  properties: mutual exclusion, progress, bounded waiting");
+   out.push("  requires sequential consistency; add fences on weak hardware");
+  } else if(algo==="bakery"){
+   var threads=r.slice(1, r.length-1);
+   var n2=Number(r[r.length-1])||3;
+   out.push("Lamport's bakery: "+threads.join(", ")+", "+n2+" rounds");
+   out.push("  choosing[i] = true; number[i] = 1 + max(number); choosing[i] = false;");
+   out.push("  for j: wait while choosing[j]; wait while (number[j], j) < (number[i], i);");
+   out.push("  critical section; number[i] = 0;");
+   out.push("  FIFO fairness, works for n threads");
+  } else if(algo==="ticket"){
+   var threads2=r.slice(1, r.length-1);
+   var n3=Number(r[r.length-1])||3;
+   out.push("Ticket lock: "+threads2.join(", ")+", "+n3+" rounds");
+   out.push("  lock:    my = fetch_and_add(next_ticket, 1); while now_serving != my wait;");
+   out.push("  unlock:  now_serving = now_serving + 1;");
+   out.push("  FIFO fairness, one cache line per lock");
+   out.push("  contention causes cache-line ping-pong; MCS lock fixes this");
+  } else if(algo==="tas"){
+   var threads3=r.slice(1, r.length-1);
+   var n4=Number(r[r.length-1])||3;
+   out.push("Test-and-set / CAS: "+threads3.join(", ")+", "+n4+" rounds");
+   out.push("  TAS: while test_and_set(&lock) wait; lock = 0;");
+   out.push("  CAS: while !compare_and_swap(&lock, 0, 1) wait; lock = 0;");
+   out.push("  simple but unfair (no bounded waiting)");
+   out.push("  test-and-test-and-set reduces cache traffic");
+  } else {
+   out.push("Unknown algorithm: "+algo);
+  }
+  out.push("");
+ }
+ out.push("Correctness requirements");
+ out.push("  mutual exclusion: at most one thread in the critical section");
+ out.push("  progress: a thread outside the section cannot block others");
+ out.push("  bounded waiting: a thread cannot wait forever");
+ out.push("");
+ out.push("On x86 with TSO, most algorithms work with a compiler barrier.");
+ out.push("On ARM and POWER, use acquire/release or a full fence.");
+ return {encoded:out.join("\n"),decoded:"Peterson and Dekker work for two threads. Lamport's bakery and the ticket lock work for n threads with FIFO fairness. TAS and CAS are the hardware primitives that make modern locks possible. On weakly ordered hardware, insert the correct fences."};
+}
+
+function demoDeadlocks(text){
+ var blocks=text.split(/\n\s*\n/);
+ var out=[];
+ var maxNeed=[];
+ var blockLines=(blocks[0]||"").trim().split(/\n/);
+ var firstLine=blockLines[0]?blockLines[0].trim().split(/\s+/):[];
+ var n=Number(firstLine[0])||5;
+ var m=Number(firstLine[1])||3;
+ for(var i=1;i<blockLines.length;i++){
+  var parts=blockLines[i].trim().split(/\s+/);
+  if(parts.length===m+1){
+   maxNeed.push(parts.slice(1).map(Number));
+  }
+ }
+ if(maxNeed.length && maxNeed.length!==n) n=maxNeed.length;
+ var allocation=[];
+ var allocationBlock=blocks[1]||"";
+ var allocLines=allocationBlock.trim().split(/\n/);
+ for(var a=1;a<allocLines.length;a++){
+  var p=allocLines[a].trim().split(/\s+/);
+  if(p.length===m+1)allocation.push(p.slice(1).map(Number));
+ }
+ var available=[];
+ var availLines=(blocks[2]||"").trim().split(/\n/);
+ for(var v=0;v<availLines.length;v++){
+  if(/^\d/.test(availLines[v].trim())){
+   var nums=availLines[v].trim().split(/\s+/).map(Number).filter(function(x){return !isNaN(x)});
+   if(nums.length===m){available=nums; break}
+  }
+ }
+ if(!maxNeed.length || !allocation.length || !available.length){
+  n=5; m=3;
+  maxNeed=[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]];
+  allocation=[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]];
+  available=[3,3,2];
+ }
+ var need=[];
+ for(var i2=0;i2<n;i2++){
+  need.push([]);
+  for(var j=0;j<m;j++)need[i2].push(maxNeed[i2][j]-allocation[i2][j]);
+ }
+ out.push("Processes: "+n+", resource types: "+m);
+ out.push("");
+ out.push("Max need:");
+ for(var i3=0;i3<n;i3++)out.push("  P"+padEnd(i3,3)+maxNeed[i3].join(" "));
+ out.push("");
+ out.push("Allocation:");
+ for(var i4=0;i4<n;i4++)out.push("  P"+padEnd(i4,3)+allocation[i4].join(" "));
+ out.push("");
+ out.push("Need = Max - Allocation:");
+ for(var i5=0;i5<n;i5++)out.push("  P"+padEnd(i5,3)+need[i5].join(" "));
+ out.push("");
+ out.push("Available: "+available.join(" "));
+ out.push("");
+ var work=available.slice();
+ var finish=[];
+ for(var i6=0;i6<n;i6++)finish.push(false);
+ var sequence=[];
+ while(sequence.length<n){
+  var found=false;
+  for(var i7=0;i7<n;i7++){
+   if(finish[i7])continue;
+   var ok=true;
+   for(var j2=0;j2<m;j2++)if(need[i7][j2]>work[j2]){ok=false;break}
+   if(ok){
+    for(var j3=0;j3<m;j3++)work[j3]+=allocation[i7][j3];
+    finish[i7]=true;
+    sequence.push(i7);
+    found=true;
+    break;
+   }
+  }
+  if(!found)break;
+ }
+ out.push("Banker's safety check");
+ if(sequence.length===n){
+  out.push("  SAFE state");
+  out.push("  safe sequence: "+sequence.map(function(i){return "P"+i}).join(" -> "));
+ } else {
+  out.push("  UNSAFE state");
+  out.push("  could only finish: "+sequence.map(function(i){return "P"+i}).join(", "));
+ }
+ out.push("");
+ if(blocks[3]){
+  var reqLine=blocks[3].trim().split(/\n/);
+  for(var r=0;r<reqLine.length;r++){
+   var parts2=reqLine[r].trim().split(/\s+/);
+   if(parts2.length>=2 && parts2[0].indexOf("P")===0){
+    var pid=Number(parts2[0].slice(1));
+    var req=parts2.slice(1).map(Number);
+    if(req.length===m && pid>=0 && pid<n){
+     out.push("Request: P"+pid+" requests "+req.join(" "));
+     var can=true;
+     for(var j4=0;j4<m;j4++){
+      if(req[j4]>need[pid][j4] || req[j4]>available[j4]){can=false;break}
+     }
+     if(!can){
+      out.push("  request exceeds need or available: must wait");
+     } else {
+      var avail2=available.slice();
+      var alloc2=[];
+      for(var i8=0;i8<n;i8++)alloc2.push(allocation[i8].slice());
+      for(var j5=0;j5<m;j5++){avail2[j5]-=req[j5]; alloc2[pid][j5]+=req[j5]}
+      var work2=avail2.slice();
+      var finish2=[];
+      for(var i9=0;i9<n;i9++)finish2.push(false);
+      var seq2=[];
+      while(seq2.length<n){
+       var f2=false;
+       for(var i10=0;i10<n;i10++){
+        if(finish2[i10])continue;
+        var need2=[];
+        for(var j6=0;j6<m;j6++)need2.push(maxNeed[i10][j6]-alloc2[i10][j6]);
+        var ok2=true;
+        for(var j7=0;j7<m;j7++)if(need2[j7]>work2[j7]){ok2=false;break}
+        if(ok2){
+         for(var j8=0;j8<m;j8++)work2[j8]+=alloc2[i10][j8];
+         finish2[i10]=true;
+         seq2.push(i10);
+         f2=true;
+         break;
+        }
+       }
+       if(!f2)break;
+      }
+      if(seq2.length===n){
+       out.push("  tentative allocation leaves a SAFE state: grant");
+       out.push("  safe sequence: "+seq2.map(function(i){return "P"+i}).join(" -> "));
+      } else {
+       out.push("  tentative allocation leaves an UNSAFE state: deny and wait");
+      }
+     }
+    }
+   }
+  }
+ }
+ out.push("");
+ out.push("Coffman conditions: mutual exclusion, hold and wait, no preemption, circular wait.");
+ out.push("Removing any one condition prevents deadlock.");
+ return {encoded:out.join("\n"),decoded:"Banker's algorithm checks whether granting a request leaves the system in a safe state. A safe state has a sequence in which every process can finish. An unsafe state does not necessarily deadlock, but the OS cannot guarantee that all processes finish."};
+}
+
+function demoAllocBasics(text){
+ var blocks=text.split(/\n\s*\n/);
+ var sizes=parseNums(blocks[0]||"64 128 32 256 64 96 128 48");
+ var ops=[];
+ var opBlock=(blocks[1]||"").trim().split(/\n/);
+ for(var i=0;i<opBlock.length;i++){
+  var parts=opBlock[i].trim().split(/\s+/);
+  if(parts.length>=2 && (parts[0]==="alloc"||parts[0]==="free")){
+   ops.push({op:parts[0], val:Number(parts[1])});
+  }
+ }
+ if(!ops.length){
+  ops=[{op:"alloc",val:100},{op:"alloc",val:50},{op:"alloc",val:200},{op:"alloc",val:80}];
+ }
+ var out=[];
+ out.push("Initial free blocks: "+sizes.join(", "));
+ out.push("");
+ function makeBlocks(){
+  var bs=[];
+  var start=0;
+  for(var i=0;i<sizes.length;i++){
+   bs.push({start:start, size:sizes[i], free:true});
+   start+=sizes[i];
+  }
+  return bs;
+ }
+ function firstFit(blocks, req){
+  for(var i=0;i<blocks.length;i++)if(blocks[i].free && blocks[i].size>=req)return i;
+  return -1;
+ }
+ function bestFit(blocks, req){
+  var best=-1, bestSize=Infinity;
+  for(var i=0;i<blocks.length;i++){
+   if(blocks[i].free && blocks[i].size>=req && blocks[i].size<bestSize){bestSize=blocks[i].size; best=i}
+  }
+  return best;
+ }
+ function worstFit(blocks, req){
+  var best=-1, bestSize=-1;
+  for(var i=0;i<blocks.length;i++){
+   if(blocks[i].free && blocks[i].size>=req && blocks[i].size>bestSize){bestSize=blocks[i].size; best=i}
+  }
+  return best;
+ }
+ function coalesce(blocks){
+  var merged=true;
+  while(merged){
+   merged=false;
+   for(var i=0;i<blocks.length-1;i++){
+    if(blocks[i].free && blocks[i+1].free){
+     blocks[i].size+=blocks[i+1].size;
+     blocks.splice(i+1,1);
+     merged=true;
+     break;
+    }
+   }
+  }
+ }
+ for(var pi=0; pi<3; pi++){
+  var policy=[firstFit, bestFit, worstFit][pi];
+  var policyName=["First-fit","Best-fit","Worst-fit"][pi];
+  var bs=makeBlocks();
+  var log=[];
+  for(var o=0;o<ops.length;o++){
+   if(ops[o].op==="alloc"){
+    var idx=policy(bs, ops[o].val);
+    if(idx<0){log.push("alloc "+ops[o].val+" -> FAIL"); continue}
+    var b=bs[idx];
+    if(b.size > ops[o].val){
+     var rem={start:b.start+ops[o].val, size:b.size-ops[o].val, free:true};
+     b.size=ops[o].val;
+     bs.splice(idx+1, 0, rem);
+    }
+    b.free=false;
+    log.push("alloc "+ops[o].val+" -> ok at "+b.start);
+   } else {
+    var count=0;
+    for(var i2=0;i2<bs.length;i2++){
+     if(!bs[i2].free){
+      if(count===ops[o].val){bs[i2].free=true; log.push("free block "+ops[o].val); break}
+      count++;
+     }
+    }
+    coalesce(bs);
+   }
+  }
+  out.push(policyName+" simulation");
+  for(var l=0;l<log.length;l++)out.push("  "+log[l]);
+  var freeList=bs.filter(function(b){return b.free}).map(function(b){return b.start+":"+b.size});
+  out.push("  final free list: "+freeList.join(", "));
+  var freeSizes=bs.filter(function(b){return b.free}).map(function(b){return b.size});
+  if(freeSizes.length){
+   var largest=Math.max.apply(null,freeSizes);
+   var total=freeSizes.reduce(function(a,b){return a+b},0);
+   out.push("  largest free / total free = "+fmtNum(largest/total,3));
+  }
+  out.push("");
+ }
+ out.push("Fragmentation");
+ out.push("  internal: block is larger than the request");
+ out.push("  external: free memory is split into small blocks");
+ out.push("  coalescing with boundary tags keeps external fragmentation bounded");
+ return {encoded:out.join("\n"),decoded:"First-fit takes the first block that fits. Best-fit takes the smallest block that fits and leaves the smallest remainder. Worst-fit takes the largest block. Coalescing merges adjacent free blocks on free. No single policy is optimal for every workload."};
+}
+
+function demoKernelAllocators(text){
+ var blocks=text.split(/\n\s*\n/);
+ var out=[];
+ if(blocks[0]){
+  var lines=blocks[0].trim().split(/\n/);
+  var head=lines[0].split(/\s+/);
+  if(head[0]==="buddy"){
+   var total=1<<Number(head[1]);
+   var maxOrder=Number(head[1]);
+   var freeLists={};
+   for(var k=0;k<=maxOrder;k++)freeLists[k]=[];
+   freeLists[maxOrder].push(0);
+   out.push("Buddy system: "+total+" pages, max order "+maxOrder);
+   var reqs=lines[1]?lines[1].split(/\s+/).map(Number):[];
+   for(var r=0;r<reqs.length;r++){
+    var order=Math.ceil(Math.log2(reqs[r]))||0;
+    var block=null;
+    for(var k2=order;k2<=maxOrder;k2++){
+     if(freeLists[k2].length){
+      block=freeLists[k2].pop();
+      var cur=k2;
+      while(cur>order){
+       cur--;
+       var buddy=block ^ (1<<cur);
+       freeLists[cur].push(buddy);
+      }
+      break;
+     }
+    }
+    if(block===null){
+     out.push("  alloc "+reqs[r]+" (order "+order+") -> FAIL");
+    } else {
+     out.push("  alloc "+reqs[r]+" (order "+order+") -> block at page "+block);
+    }
+   }
+   out.push("  free lists after allocations:");
+   for(var k3=0;k3<=maxOrder;k3++){
+    out.push("    order "+k3+" ("+(1<<k3)+" pages): "+freeLists[k3].join(", "));
+   }
+   out.push("");
+  }
+ }
+ if(blocks[1]){
+  var slabLines=blocks[1].trim().split(/\n/);
+  out.push("Slab caches");
+  for(var s=1;s<slabLines.length;s++){
+   var parts=slabLines[s].trim().split(/\s+/);
+   if(parts.length===2){
+    var name=parts[0], count=Number(parts[1]);
+    var perSlab=Math.max(1, Math.ceil(count/4));
+    out.push("  "+padEnd(name,14)+" objects="+count+"  objects per slab="+perSlab);
+   }
+  }
+  out.push("");
+  out.push("  SLUB is the modern Linux implementation.");
+  out.push("  Per-CPU freelists avoid contention on the global list.");
+ }
+ if(blocks[2]){
+  var allocLines=blocks[2].trim().split(/\n/);
+  out.push("Allocation trace");
+  for(var a=1;a<allocLines.length;a++){
+   out.push("  "+allocLines[a].trim());
+  }
+  out.push("");
+ }
+ out.push("TLSF (Two-Level Segregated Fit)");
+ out.push("  two-level bitmap of free lists");
+ out.push("  first level: power of two, second: linear");
+ out.push("  O(1) allocation and free, bounded fragmentation");
+ out.push("");
+ out.push("Per-CPU caches and arenas reduce cache-line contention.");
+ return {encoded:out.join("\n"),decoded:"The buddy system splits and merges power-of-two blocks. Slab caches pre-build objects of the same type and reuse them. TLSF gives O(1) allocation with bounded fragmentation. Per-CPU caches reduce contention on the global freelist."};
+}
+
+function demoVirtualMemory(text){
+ var rows=parseRows(text);
+ var pageBits=12;
+ var levels=4;
+ var addr=0x1A2B3C4D;
+ var tlbSize=64;
+ var hitRatio=0.95;
+ var faultRate=0.0001;
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r[0]==="tlb"){tlbSize=Number(r[1])||64; hitRatio=Number(r[2])||0.95}
+  else if(r[0]==="levels"){levels=Number(r[1])||4}
+  else if(r[0]==="addr"){addr=parseInt(r[1],16)||0x1A2B3C4D}
+  else if(r[0]==="fault"){faultRate=Number(r[1])||0.0001}
+  else if(r[0]==="page"){pageBits=Number(r[1])||12}
+  else if(/^0x/i.test(r[0]))addr=parseInt(r[0],16)||addr
+ }
+ var out=[];
+ out.push("Page size: "+(1<<pageBits)+" bytes");
+ out.push("Levels: "+levels);
+ out.push("TLB entries: "+tlbSize);
+ out.push("TLB hit ratio: "+hitRatio);
+ out.push("Virtual address: 0x"+addr.toString(16).toUpperCase());
+ out.push("");
+ var offset=addr & ((1<<pageBits)-1);
+ var vpn=Math.floor(addr/(1<<pageBits));
+ var indices=[];
+ for(var l=0;l<levels;l++){
+  indices.push(vpn & 0x1FF);
+  vpn=Math.floor(vpn/512);
+ }
+ indices.reverse();
+ out.push("Address split (9 bits per level on x86-64):");
+ for(var l2=0;l2<indices.length;l2++){
+  out.push("  level "+(l2+1)+" index: "+indices[l2]);
+ }
+ out.push("  offset:      "+offset+" (0x"+offset.toString(16)+")");
+ out.push("");
+ out.push("Page-table walk: "+levels+" memory accesses per translation.");
+ out.push("");
+ out.push("TLB");
+ out.push("  hit ratio: "+hitRatio);
+ out.push("  hit:  1 cycle");
+ out.push("  miss: "+levels+" memory accesses (~"+levels*20+" cycles)");
+ var hitCycles=1, missCycles=levels*20;
+ var avg=hitRatio*hitCycles+(1-hitRatio)*missCycles;
+ out.push("  average access time: "+fmtNum(avg,2)+" cycles");
+ out.push("");
+ out.push("Page fault rate: "+faultRate);
+ out.push("  fault cost: ~10,000,000 ns (10 ms, disk I/O)");
+ var totalNs=avg+ faultRate*10000000;
+ out.push("  effective access time: "+fmtNum(totalNs,2)+" ns per access");
+ out.push("");
+ out.push("Multilevel page tables save memory for sparse address spaces.");
+ out.push("Huge pages reduce the number of TLB entries needed.");
+ return {encoded:out.join("\n"),decoded:"A virtual address is split into page-table indices and an offset. The MMU walks the page table to find the physical frame. The TLB caches recent translations. A TLB miss costs several memory accesses; a page fault costs milliseconds."};
+}
+
+function demoPageReplacement(text){
+ var blocks=text.split(/\n\s*\n/);
+ var refs=parseNums(blocks[0]||"1 2 3 4 1 2 5 1 2 3 4 5");
+ var frames=parseInt((blocks[1]||"3").trim())||3;
+ if(!refs.length)throw Error("Enter a reference string, then a blank line, then the number of frames.");
+ var out=[];
+ out.push("Reference string: "+refs.join(" "));
+ out.push("Frames: "+frames);
+ out.push("");
+ function fifo(refs, frames){
+  var mem=[], faults=0, evictions=[];
+  for(var i=0;i<refs.length;i++){
+   var r=refs[i];
+   if(mem.indexOf(r)>=0)continue;
+   faults++;
+   if(mem.length===frames){evictions.push(mem.shift())}
+   mem.push(r);
+  }
+  return {faults:faults, evictions:evictions};
+ }
+ function lru(refs, frames){
+  var mem=[], faults=0;
+  for(var i=0;i<refs.length;i++){
+   var r=refs[i];
+   var idx=mem.indexOf(r);
+   if(idx>=0){mem.splice(idx,1); mem.push(r); continue}
+   faults++;
+   if(mem.length===frames)mem.shift();
+   mem.push(r);
+  }
+  return {faults:faults};
+ }
+ function clock(refs, frames){
+  var mem=new Array(frames).fill(null);
+  var refBit=new Array(frames).fill(0);
+  var hand=0, faults=0;
+  for(var i=0;i<refs.length;i++){
+   var r=refs[i];
+   var idx=mem.indexOf(r);
+   if(idx>=0){refBit[idx]=1; continue}
+   faults++;
+   while(refBit[hand]===1){refBit[hand]=0; hand=(hand+1)%frames}
+   mem[hand]=r;
+   refBit[hand]=1;
+   hand=(hand+1)%frames;
+  }
+  return {faults:faults};
+ }
+ function optimal(refs, frames){
+  var mem=[], faults=0;
+  for(var i=0;i<refs.length;i++){
+   var r=refs[i];
+   if(mem.indexOf(r)>=0)continue;
+   faults++;
+   if(mem.length<frames){mem.push(r); continue}
+   var farthest=-1, victim=null;
+   for(var m=0;m<mem.length;m++){
+    var nxt=refs.indexOf(mem[m], i+1);
+    if(nxt<0)nxt=Infinity;
+    if(nxt>farthest){farthest=nxt; victim=mem[m]}
+   }
+   mem.splice(mem.indexOf(victim),1);
+   mem.push(r);
+  }
+  return {faults:faults};
+ }
+ var f=fifo(refs,frames);
+ var l=lru(refs,frames);
+ var c=clock(refs,frames);
+ var o=optimal(refs,frames);
+ out.push(padEnd("policy",12)+"faults");
+ out.push(padEnd("FIFO",12)+f.faults);
+ out.push(padEnd("LRU",12)+l.faults);
+ out.push(padEnd("Clock",12)+c.faults);
+ out.push(padEnd("Optimal",12)+o.faults);
+ out.push("");
+ out.push("Belady's anomaly (FIFO):");
+ for(var fr=3;fr<=5;fr++){
+  var ff=fifo(refs,fr);
+  var ll=lru(refs,fr);
+  out.push("  frames="+fr+":  FIFO="+ff.faults+"  LRU="+ll.faults);
+ }
+ out.push("");
+ out.push("FIFO can fault more with more frames. LRU and Optimal cannot.");
+ out.push("Optimal (Belady's MIN) is a theoretical benchmark that needs future knowledge.");
+ out.push("Clock approximates LRU with one reference bit per frame.");
+ out.push("WSClock adds the working-set age to Clock and handles writeback.");
+ return {encoded:out.join("\n"),decoded:"FIFO evicts the oldest page and can exhibit Belady's anomaly. LRU evicts the least recently used page and has the stack property, so more frames never cause more faults. Clock approximates LRU with a reference bit. Optimal is the theoretical best but needs future knowledge."};
+}
+
+function demoProtectionSharing(text){
+ var rows=parseRows(text);
+ var out=[];
+ out.push("Memory protection and sharing");
+ out.push("");
+ var cowPages=1, mmapFiles=1, shmSegs=1, aslrBits=28;
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r[0]==="COW")cowPages=Number(r[1])||1;
+  if(r[0]==="mmap")mmapFiles=Number(r[1])||1;
+  if(r[0]==="shm")shmSegs=Number(r[1])||1;
+  if(r[0]==="ASLR")aslrBits=Number(r[1])||28;
+ }
+ out.push("Copy-on-write");
+ out.push("  pages shared after fork: "+cowPages);
+ out.push("  a write triggers a protection fault and copies one page");
+ out.push("  cost per written page: one 4 KB copy (~1 us)");
+ out.push("  for a fork+exec, most pages are never written");
+ out.push("");
+ out.push("Memory-mapped files");
+ out.push("  mapped files: "+mmapFiles);
+ out.push("  MAP_SHARED:  writes visible to other mappers and the file");
+ out.push("  MAP_PRIVATE: writes are COW and stay local");
+ out.push("  the page cache backs the mapping");
+ out.push("  on-demand paging: a page is read on first access");
+ out.push("");
+ out.push("Shared memory");
+ out.push("  segments: "+shmSegs);
+ out.push("  the same physical frames map into multiple processes");
+ out.push("  fastest IPC, no kernel copy in the data path");
+ out.push("  needs external synchronization (semaphores, futexes)");
+ out.push("");
+ out.push("ASLR");
+ out.push("  entropy: "+aslrBits+" bits");
+ out.push("  number of possible base addresses: 2^"+aslrBits+" = "+Math.pow(2,aslrBits).toExponential(2));
+ out.push("  randomized regions: stack, heap, mmap, libraries");
+ out.push("  combined with NX, stack canaries and CFI");
+ out.push("");
+ out.push("Page permissions (x86-64 PTE bits)");
+ out.push("  P    present");
+ out.push("  R/W  read-only or read-write");
+ out.push("  U/S  user or supervisor");
+ out.push("  NX   no-execute");
+ out.push("  A    accessed, D dirty");
+ out.push("");
+ out.push("Every access is checked by the MMU. A violation traps to the kernel.");
+ out.push("Forget the TLB flush after mprotect and the CPU may use a stale mapping.");
+ return {encoded:out.join("\n"),decoded:"Copy-on-write shares pages until a write. mmap maps file pages into the address space. Shared memory maps the same physical frames into multiple processes. ASLR randomizes the base addresses to hinder exploits. Every access is checked against the page permission bits."};
+}
+
+function demoGarbageCollection(text){
+ var blocks=text.split(/\n\s*\n/);
+ var out=[];
+ var roots=[], edges={}, cycles=[];
+ if(blocks[0]){
+  var lines=blocks[0].trim().split(/\n/);
+  var rootsLine=lines[0].replace(/^roots\s*/,"").trim().split(/\s+/).filter(Boolean);
+  roots=rootsLine;
+  for(var i=1;i<lines.length;i++){
+   var parts=lines[i].trim().split(/\s*->\s*/);
+   if(parts.length===2){
+    var src=parts[0].trim(), dst=parts[1].trim();
+    if(!edges[src])edges[src]=[];
+    edges[src].push(dst);
+   }
+  }
+ }
+ if(blocks[1]){
+  cycles=blocks[1].trim().split(/\s+/).filter(Boolean);
+ }
+ if(!roots.length){
+  roots=['R1','R2'];
+  edges={'R1':['A'],'A':['B'],'B':['C'],'R2':['D'],'D':['E'],'E':['D']};
+  cycles=['D','E'];
+ }
+ var allNodes={};
+ for(var r=0;r<roots.length;r++)allNodes[roots[r]]=true;
+ for(var s in edges){
+  allNodes[s]=true;
+  for(var j=0;j<edges[s].length;j++)allNodes[edges[s][j]]=true;
+ }
+ out.push("Object graph");
+ out.push("  roots: "+roots.join(", "));
+ for(var s2 in edges){
+  out.push("  "+s2+" -> "+edges[s2].join(", "));
+ }
+ out.push("  total objects: "+Object.keys(allNodes).length);
+ out.push("");
+ var refcounts={};
+ for(var k in allNodes)refcounts[k]=0;
+ for(var s3 in edges){
+  for(var j2=0;j2<edges[s3].length;j2++)refcounts[edges[s3][j2]]++;
+ }
+ for(var r2=0;r2<roots.length;r2++)refcounts[roots[r2]]++;
+ out.push("Reference counting");
+ out.push("  refcounts:");
+ var rk=Object.keys(refcounts).sort();
+ for(var i2=0;i2<rk.length;i2++){
+  out.push("    "+padEnd(rk[i2],6)+refcounts[rk[i2]]);
+ }
+ out.push("  objects with refcount 0 are freed immediately");
+ out.push("  cycles (refcount > 0 but unreachable) leak:");
+ out.push("    "+cycles.join(", ")+" form a cycle and are never freed by refcount alone");
+ out.push("  fix:  cycle collector or weak references");
+ out.push("");
+ function markSweep(roots, edges){
+  var marked={};
+  var stack=roots.slice();
+  while(stack.length){
+   var n=stack.pop();
+   if(marked[n])continue;
+   marked[n]=true;
+   var nbrs=edges[n]||[];
+   for(var i=0;i<nbrs.length;i++)stack.push(nbrs[i]);
+  }
+  var garbage=[];
+  for(var n2 in allNodes)if(!marked[n2])garbage.push(n2);
+  return {marked:Object.keys(marked), garbage:garbage};
+ }
+ var ms=markSweep(roots, edges);
+ out.push("Mark-sweep");
+ out.push("  marked:  "+ms.marked.sort().join(", "));
+ out.push("  garbage: "+ms.garbage.sort().join(", "));
+ out.push("  the mark phase is O(live set), the sweep is O(heap)");
+ out.push("");
+ function cheney(roots, edges){
+  var to=[];
+  var queue=roots.slice();
+  var seen={};
+  while(queue.length){
+   var n=queue.shift();
+   if(seen[n])continue;
+   seen[n]=true;
+   to.push(n);
+   var nbrs=edges[n]||[];
+   for(var i=0;i<nbrs.length;i++)queue.push(nbrs[i]);
+  }
+  return to;
+ }
+ var copy=cheney(roots, edges);
+ out.push("Copying collector (Cheney)");
+ out.push("  survivors copied to the to-space: "+copy.join(", "));
+ out.push("  cost is proportional to the live set, not the heap");
+ out.push("  uses 2x memory (two semispaces)");
+ out.push("");
+ out.push("Generational GC");
+ out.push("  weak generational hypothesis: most objects die young");
+ out.push("  young gen: minor GC, frequent, small");
+ out.push("  old gen: major GC, rare, large");
+ out.push("  promotion: objects that survive a few minor GCs move to the old gen");
+ out.push("  write barrier: track old-to-young pointers");
+ return {encoded:out.join("\n"),decoded:"Reference counting frees an object when its count drops to zero but cannot collect cycles. Mark-sweep traces from the roots and frees the unreachable objects. Copying collectors move live objects and leave the garbage behind. Generational collectors exploit the fact that most objects die young."};
+}
+
+function demoModernGc(text){
+ var rows=parseRows(text);
+ var out=[];
+ var heapMB=4096, regionMB=2, youngMB=512, oldMB=3584, pauseMs=1, gcCount=3;
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r[0]==="heap")heapMB=Number(r[1])||heapMB;
+  if(r[0]==="region")regionMB=Number(r[1])||regionMB;
+  if(r[0]==="young")youngMB=Number(r[1])||youngMB;
+  if(r[0]==="old")oldMB=Number(r[1])||oldMB;
+  if(r[0]==="pause")pauseMs=Number(r[1])||pauseMs;
+  if(r[0]==="GC")gcCount=Number(r[1])||gcCount;
+ }
+ var regions=Math.floor(heapMB/regionMB);
+ out.push("Heap: "+heapMB+" MB");
+ out.push("Region size: "+regionMB+" MB");
+ out.push("Regions: "+regions);
+ out.push("");
+ var youngRegions=Math.floor(youngMB/regionMB);
+ var oldRegions=Math.floor(oldMB/regionMB);
+ out.push("Region layout");
+ out.push("  young regions: "+youngRegions);
+ out.push("  old regions:   "+oldRegions);
+ out.push("  free regions:  "+(regions-youngRegions-oldRegions));
+ out.push("");
+ out.push("G1 collection cycle");
+ out.push("  1. initial mark (STW):  mark the roots");
+ out.push("  2. concurrent mark:  trace the graph while the mutator runs");
+ out.push("  3. remark (STW):  catch up on the changes");
+ out.push("  4. cleanup:  choose the collection set by garbage ratio");
+ out.push("  5. evacuation (STW):  copy live objects out of the chosen regions");
+ out.push("");
+ var regionGarbage=[];
+ var seed=42;
+ function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff}
+ for(var r2=0;r2<regions;r2++){
+  regionGarbage.push({id:r2, ratio:rnd(), cost:1+rnd()*5});
+ }
+ regionGarbage.sort(function(a,b){return b.ratio-a.ratio});
+ out.push("Garbage-first collection set (target pause "+pauseMs+" ms):");
+ var chosen=[], budget=pauseMs;
+ for(var c=0;c<regionGarbage.length;c++){
+  if(regionGarbage[c].cost<=budget){
+   chosen.push(regionGarbage[c].id);
+   budget-=regionGarbage[c].cost;
+  }
+ }
+ out.push("  regions: "+chosen.join(", "));
+ out.push("  regions chosen: "+chosen.length);
+ out.push("");
+ out.push("Pause comparison");
+ out.push("  "+padEnd("collector",14)+padEnd("pause",12)+"heap");
+ var collectors=[
+  ["Serial",50,"up to 4 GB"],
+  ["Parallel",20,"up to 64 GB"],
+  ["G1",5,"up to 64 GB"],
+  ["ZGC",0.5,"up to 16 TB"],
+  ["Shenandoah",2,"up to 64 GB"]
+ ];
+ for(var c2=0;c2<collectors.length;c2++){
+  out.push("  "+padEnd(collectors[c2][0],14)+padEnd(collectors[c2][1]+" ms",12)+collectors[c2][2]);
+ }
+ out.push("");
+ out.push("Write barriers");
+ out.push("  G1:  SATB (snapshot-at-the-beginning)");
+ out.push("  ZGC:  load barrier + colored pointers");
+ out.push("  Shenandoah:  Brooks forwarding pointer + load-reference barrier");
+ out.push("");
+ out.push("Escape analysis");
+ out.push("  the JIT proves an object does not escape");
+ out.push("  the object is scalarized or stack-allocated");
+ out.push("  reduces the allocation rate and GC pressure");
+ return {encoded:out.join("\n"),decoded:"G1 splits the heap into regions and picks the garbage-richest ones for collection. ZGC uses colored pointers and load barriers to relocate objects concurrently with sub-millisecond pauses. Shenandoah uses Brooks forwarding pointers. All concurrent collectors need a write barrier to maintain the tri-color invariant."};
+}
+
+function demoIoScheduling(text){
+ var rows=parseRows(text);
+ var out=[];
+ var head=null, end=null;
+ var requests=[];
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r.length===1 && !isNaN(Number(r[0]))){
+   if(head===null) head=Number(r[0]);
+   else if(requests.length) end=Number(r[0]);
+  } else if(r.length>0){
+   for(var j=0;j<r.length;j++){
+    var v=Number(r[j]);
+    if(!isNaN(v))requests.push(v);
+   }
+  }
+ }
+ if(head===null) head=53;
+ if(end===null) end=200;
+ if(!requests.length){
+  head=53;
+  requests=[98,183,37,122,14,124,65,67];
+  end=200;
+ }
+ out.push("Requests: "+requests.join(", "));
+ out.push("Initial head: "+head);
+ out.push("Disk end: "+end);
+ out.push("");
+ function fcfs(reqs, h){
+  var total=0, cur=h;
+  for(var i=0;i<reqs.length;i++){total+=Math.abs(reqs[i]-cur); cur=reqs[i]}
+  return total;
+ }
+ function sstf(reqs, h){
+  var rem=reqs.slice();
+  var total=0, cur=h;
+  while(rem.length){
+   var best=0;
+   for(var i=1;i<rem.length;i++)if(Math.abs(rem[i]-cur)<Math.abs(rem[best]-cur))best=i;
+   total+=Math.abs(rem[best]-cur);
+   cur=rem[best];
+   rem.splice(best,1);
+  }
+  return total;
+ }
+ function scan(reqs, h, direction){
+  var left=reqs.filter(function(r){return r<h}).sort(function(a,b){return b-a});
+  var right=reqs.filter(function(r){return r>=h}).sort(function(a,b){return a-b});
+  var total=0, cur=h;
+  if(direction==="up"){
+   for(var i=0;i<right.length;i++){total+=Math.abs(right[i]-cur); cur=right[i]}
+   if(left.length){total+=Math.abs(end-cur); cur=end; for(var i2=0;i2<left.length;i2++){total+=Math.abs(left[i2]-cur); cur=left[i2]}}
+  } else {
+   for(var i3=0;i3<left.length;i3++){total+=Math.abs(left[i3]-cur); cur=left[i3]}
+   if(right.length){total+=Math.abs(0-cur); cur=0; for(var i4=0;i4<right.length;i4++){total+=Math.abs(right[i4]-cur); cur=right[i4]}}
+  }
+  return total;
+ }
+ function cscan(reqs, h){
+  var left=reqs.filter(function(r){return r<h}).sort(function(a,b){return b-a});
+  var right=reqs.filter(function(r){return r>=h}).sort(function(a,b){return a-b});
+  var total=0, cur=h;
+  for(var i=0;i<right.length;i++){total+=Math.abs(right[i]-cur); cur=right[i]}
+  total+=Math.abs(end-cur); cur=end;
+  total+=Math.abs(end-0); cur=0;
+  for(var i2=0;i2<left.length;i2++){total+=Math.abs(left[i2]-cur); cur=left[i2]}
+  return total;
+ }
+ function look(reqs, h, direction){
+  var left=reqs.filter(function(r){return r<h}).sort(function(a,b){return b-a});
+  var right=reqs.filter(function(r){return r>=h}).sort(function(a,b){return a-b});
+  var total=0, cur=h;
+  if(direction==="up"){
+   for(var i=0;i<right.length;i++){total+=Math.abs(right[i]-cur); cur=right[i]}
+   for(var i2=0;i2<left.length;i2++){total+=Math.abs(left[i2]-cur); cur=left[i2]}
+  } else {
+   for(var i3=0;i3<left.length;i3++){total+=Math.abs(left[i3]-cur); cur=left[i3]}
+   for(var i4=0;i4<right.length;i4++){total+=Math.abs(right[i4]-cur); cur=right[i4]}
+  }
+  return total;
+ }
+ out.push(padEnd("policy",14)+"total head movement");
+ out.push(padEnd("FCFS",14)+fcfs(requests, head));
+ out.push(padEnd("SSTF",14)+sstf(requests, head));
+ out.push(padEnd("SCAN up",14)+scan(requests, head, "up"));
+ out.push(padEnd("SCAN down",14)+scan(requests, head, "down"));
+ out.push(padEnd("C-SCAN",14)+cscan(requests, head));
+ out.push(padEnd("LOOK up",14)+look(requests, head, "up"));
+ out.push(padEnd("LOOK down",14)+look(requests, head, "down"));
+ out.push("");
+ out.push("FCFS: fair, poor throughput");
+ out.push("SSTF: minimizes the next seek, can starve far requests");
+ out.push("SCAN: sweeps to the end, reverses, no starvation");
+ out.push("C-SCAN: sweeps one direction, jumps back, uniform wait");
+ out.push("LOOK / C-LOOK: stop at the last request, less travel");
+ out.push("");
+ out.push("DMA moves data without the CPU. Interrupt-driven I/O notifies on completion.");
+ out.push("Modern NVMe SSDs have no seek time; use blk-mq with none or mq-deadline.");
+ return {encoded:out.join("\n"),decoded:"FCFS serves requests in arrival order. SSTF picks the nearest request but can starve far ones. SCAN sweeps back and forth. C-SCAN sweeps one direction and jumps back. LOOK and C-LOOK stop at the last request. DMA and interrupts decouple the CPU from the device."};
+}
+
+function demoAdvancedMemory(text){
+ var rows=parseRows(text);
+ var nodes=2, threads=4, pages=1000, hugeMB=2, padBytes=64, order="acquire-release";
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(r[0]==="nodes")nodes=Number(r[1])||nodes;
+  if(r[0]==="threads")threads=Number(r[1])||threads;
+  if(r[0]==="pages")pages=Number(r[1])||pages;
+  if(r[0]==="huge")hugeMB=Number(r[1])||hugeMB;
+  if(r[0]==="pad")padBytes=Number(r[1])||padBytes;
+  if(r[0]==="order")order=r.slice(1).join("-");
+ }
+ var out=[];
+ out.push("NUMA topology");
+ out.push("  nodes: "+nodes);
+ out.push("  threads: "+threads);
+ out.push("  threads per node: "+fmtNum(threads/nodes,2));
+ out.push("");
+ out.push("NUMA latency");
+ var localNs=80, remoteNs=140;
+ for(var hr=0;hr<=1.0001;hr+=0.25){
+  var h=Math.min(1,hr);
+  var t=h*localNs+(1-h)*remoteNs;
+  out.push("  local hit "+padEnd(h.toFixed(2),6)+" avg latency "+fmtNum(t,1)+" ns");
+ }
+ out.push("");
+ out.push("Placement policies");
+ out.push("  first-touch:  the page is placed on the node of the first writer");
+ out.push("  interleave:   round-robin pages across nodes");
+ out.push("  bind:         all pages on a chosen node");
+ out.push("  migrate:      move pages to the accessing node");
+ out.push("  first-touch is the default in Linux");
+ out.push("");
+ out.push("Huge pages");
+ var wsMB=1024;
+ for(var pg=0;pg<3;pg++){
+  var pageKB=[4,2048,1048576][pg];
+  var label=["4 KB","2 MB","1 GB"][pg];
+  var nPages=wsMB*1024/pageKB;
+  out.push("  "+padEnd(label,6)+" pages for 1 GB: "+padEnd(fmtNum(nPages,0),12)+"TLB coverage with 64 entries: "+fmtNum(nPages/64,1)+"x");
+ }
+ out.push("");
+ out.push("False sharing");
+ out.push("  cache line: 64 bytes on x86, 128 on some ARM");
+ out.push("  padding: "+padBytes+" bytes");
+ out.push("  two variables on the same line ping-pong between cores");
+ out.push("  fix: alignas(64), padding, or @Contended");
+ out.push("");
+ out.push("Memory ordering: "+order);
+ out.push("  relaxed:   no ordering");
+ out.push("  acquire:   no later operation moves before it");
+ out.push("  release:   no earlier operation moves after it");
+ out.push("  seq_cst:   total order on all operations");
+ out.push("  x86 is TSO (strong); ARM and POWER are weaker");
+ out.push("");
+ out.push("Memory reclamation");
+ out.push("  hazard pointers:  publish the pointer in use");
+ out.push("  epoch-based:      announce the epoch, free at the next quiet point");
+ out.push("  RCU:              readers are wait-free, writers defer the free");
+ out.push("  used in the Linux kernel and in lock-free libraries");
+ return {encoded:out.join("\n"),decoded:"On a NUMA system, local memory is about 40% faster than remote memory. First-touch placement keeps pages near the CPU that uses them. Huge pages reduce TLB pressure. False sharing makes unrelated variables contend on the same cache line. Memory ordering determines the correctness of lock-free code on weakly ordered CPUs."};
+}
+
+/* ============================================================
+   Dispatcher
+   ============================================================ */
+function runLab(l, initial){
+ var input=$("#labInput").value;
+ var res;
+ try{
+  if(!initial){$("#labEncoded").textContent="Running…";$("#labDecoded").textContent=""}
+  switch(l.demo){
+   case"os-foundations":res=demoOsFoundations(input);break;
+   case"os-scheduling":res=demoOsScheduling(input);break;
+   case"concurrency-basics":res=demoConcurrencyBasics(input);break;
+   case"mutual-exclusion":res=demoMutualExclusion(input);break;
+   case"deadlocks":res=demoDeadlocks(input);break;
+   case"alloc-basics":res=demoAllocBasics(input);break;
+   case"kernel-allocators":res=demoKernelAllocators(input);break;
+   case"virtual-memory":res=demoVirtualMemory(input);break;
+   case"page-replacement":res=demoPageReplacement(input);break;
+   case"protection-sharing":res=demoProtectionSharing(input);break;
+   case"garbage-collection":res=demoGarbageCollection(input);break;
+   case"modern-gc":res=demoModernGc(input);break;
+   case"io-scheduling":res=demoIoScheduling(input);break;
+   case"advanced-memory":res=demoAdvancedMemory(input);break;
+   default:throw Error("No interactive implementation is available for this lesson.");
+  }
+ }catch(e){
+  res={encoded:"Input or runtime error",decoded:String(e&&e.message||e)};
+ }
+ var el=$("#labEncoded");
+ if(res.html){el.innerHTML=res.html+"\n\n"+res.encoded}else{el.textContent=res.encoded}
+ $("#labDecoded").textContent=res.decoded;
+ if(!initial)toast("Lab complete");
+}
+
+/* ============================================================
+   State and shell
+   ============================================================ */
+var state={page:"home",current:null,completed:{},bookmarks:{},theme:"system",drafts:{}};
+function $(s){return document.querySelector(s)}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+var toastTimer=null;
+function toast(msg){
+ var el=$("#toast");
+ el.textContent=msg;
+ el.classList.add("show");
+ if(toastTimer)clearTimeout(toastTimer);
+ toastTimer=setTimeout(function(){el.classList.remove("show")},1900);
+}
+function save(){
+ try{
+  var data={
+   schemaVersion:1,
+   completed:Object.keys(state.completed),
+   bookmarks:Object.keys(state.bookmarks),
+   theme:state.theme,
+   current:state.current,
+   drafts:state.drafts
+  };
+  localStorage.setItem("az-os-lab-v1",JSON.stringify(data));
+ }catch(e){}
+}
+function load(){
+ try{
+  var raw=localStorage.getItem("az-os-lab-v1");
+  if(!raw)return;
+  var d=JSON.parse(raw);
+  if(!d||d.schemaVersion!==1)return;
+  (d.completed||[]).forEach(function(id){if(byId[id])state.completed[id]=true});
+  (d.bookmarks||[]).forEach(function(id){if(byId[id])state.bookmarks[id]=true});
+  if(["system","light","dark"].indexOf(d.theme)>=0)state.theme=d.theme;
+  if(d.current&&byId[d.current])state.current=d.current;
+  if(d.drafts&&typeof d.drafts==="object")state.drafts=d.drafts;
+ }catch(e){}
+}
+function applyTheme(){
+ var t=state.theme;
+ if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";
+ document.documentElement.dataset.theme=t;
+ var sel=$("#themeSelect");
+ if(sel)sel.value=state.theme;
+}
+function getChapter(id){
+ for(var i=0;i<CHAPTERS.length;i++)if(CHAPTERS[i].ids.indexOf(id)>=0)return CHAPTERS[i];
+ return CHAPTERS[0];
+}
+function completedCount(){return Object.keys(state.completed).length}
+function progress(){
+ var n=completedCount(),t=LESSONS.length;
+ $("#progressText").textContent=n+" / "+t;
+ $("#progressFill").style.width=(n/t*100)+"%";
+ $("#lessonCount").textContent=t+" lessons";
+ $("#catalogCount").textContent=CHAPTERS.length+" chapters · "+t+" lessons · "+LESSONS.filter(function(l){return l.demo&&l.demo!=="none"}).length+" labs";
+}
+function renderTree(){
+ var q=($("#searchInput").value||"").toLowerCase().trim();
+ var ch=$("#chapterFilter").value;
+ var root=$("#courseTree");
+ root.textContent="";
+ var any=false;
+ for(var ci=0;ci<CHAPTERS.length;ci++){
+  var c=CHAPTERS[ci];
+  if(ch!=="all"&&c.id!==ch)continue;
+  var rows=[];
+  for(var i=0;i<c.ids.length;i++){
+   var l=byId[c.ids[i]];
+   if(!l)continue;
+   if(q){
+    var hay=(l.title+" "+l.summary+" "+l.kind+" "+c.title).toLowerCase();
+    if(hay.indexOf(q)<0)continue;
+   }
+   rows.push(l);
+  }
+  if(!rows.length)continue;
+  any=true;
+  var group=document.createElement("section");
+  var label=document.createElement("div");label.className="group-label";
+  label.innerHTML="<span>"+esc(c.title)+"</span><span>"+rows.length+"</span>";
+  group.appendChild(label);
+  for(var i2=0;i2<rows.length;i2++){
+   var l2=rows[i2];
+   var b=document.createElement("button");b.type="button";
+   b.className="link"+(state.current===l2.id?" active":"");
+   b.dataset.lesson=l2.id;
+   var idx=LESSONS.indexOf(l2);
+   b.innerHTML='<span class="num">'+String(idx+1).padStart(2,"0")+'</span><span class="name">'+esc(l2.title)+'</span>'+(state.completed[l2.id]?'<span class="done">✓</span>':'');
+   group.appendChild(b);
+  }
+  root.appendChild(group);
+ }
+ if(!any)root.innerHTML='<p class="muted">No matching lessons. Try another search.</p>';
+ progress();
+}
+function listToHTML(a){
+ return '<ol class="steps">'+a.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+"</ol>";
+}
+function refsHTML(r){
+ if(!r||!r.length)return '<p class="muted">See the recommended textbooks and papers for a full treatment.</p>';
+ return '<div class="references">'+r.map(function(x){return '<a target="_blank" rel="noopener noreferrer" href="'+esc(x[1])+'">'+esc(x[0])+' ↗</a>'}).join("")+"</div>";
+}
+function codeText(l){
+ var c=CODE[l.id];
+ if(c)return c;
+ return "# CONCEPT OUTLINE, NOT EXECUTABLE PYTHON\n# Lesson: "+l.title+"\n\n# Core idea\n# "+String(l.summary||"").replace(/\n/g,"\n# ")+"\n\n# Pseudocode from the lesson\n"+String(l.pseudo||"").split("\n").map(function(x){return "# "+x}).join("\n")+"\n";
+}
+function statusClass(l){return /Runnable/.test(l.status)?"good":"warn"}
+
+function renderLesson(id){
+ var l=byId[id];
+ if(!l){renderHome();return}
+ state.page="lesson";state.current=id;
+ var c=getChapter(id);
+ var index=LESSONS.indexOf(l);
+ var next=LESSONS[(index+1)%LESSONS.length];
+ var hasDemo=l.demo&&l.demo!=="none";
+ var demoArea="";
+ if(hasDemo){
+  demoArea=
+   '<section class="panel"><div class="panel-head"><h2>'+esc(l.demoTitle||"Interactive teaching lab")+'</h2><p>Everything runs in your browser with plain JavaScript. This is a teaching implementation, not a production kernel or runtime.</p></div><div class="body"><div class="lab-top"><label for="labInput">Input</label><button class="btn" id="resetSample">Reset sample</button><button class="btn primary" id="runLab">Run lab</button></div><textarea class="lab-input" id="labInput" aria-label="Lab input">'+esc(l.sample||"")+'</textarea><div class="notice info"><strong>Format:</strong> see the sample for the expected format. Each lab parses the textarea with whitespace-separated fields. Blank lines separate blocks.</div><div class="lab-cols"><div><div class="label">Output</div><div class="lab-output" id="labEncoded">Run the lab to see output.</div></div><div><div class="label">Explanation</div><div class="lab-output" id="labDecoded">Step notes appear here.</div></div></div></div></section>';
+ }
+ var references=refsHTML(l.refs);
+ var code=state.drafts[id]!==undefined?state.drafts[id]:codeText(l);
+ var html="";
+ html+='<div class="breadcrumb">Operating Systems &amp; Memory / '+esc(c.title)+"</div>";
+ html+='<header class="header">';
+ html+=' <div class="eyebrow">LESSON '+String(index+1).padStart(2,"0")+" · "+esc(l.kind)+"</div>";
+ html+=" <h1>"+esc(l.title)+"</h1>";
+ html+=" <p>"+esc(l.summary)+"</p>";
+ html+=' <div class="tags"><span class="tag">Level '+l.level+'</span><span class="tag '+statusClass(l)+'">'+esc(l.status)+'</span><span class="tag">'+esc(c.title.replace(/^\d+(\.\d+)?\.?\s*/,""))+"</span></div>";
+ html+=' <div class="header-actions">';
+ html+='  <button class="btn" id="bookmarkBtn">'+(state.bookmarks[id]?"★ Bookmarked":"☆ Bookmark")+"</button>";
+ html+='  <button class="btn primary" id="completeBtn">'+(state.completed[id]?"✓ Completed":"Mark complete")+"</button>";
+ html+=" </div>";
+ html+="</header>";
+ html+='<section class="panel"><div class="panel-head"><h2>1. Understand the idea</h2><p>Plain language and a mental picture</p></div><div class="body idea"><div><p>'+esc(l.summary)+'</p><p><strong>What problem it solves:</strong> '+esc(l.problem)+'</p><div class="takeaway"><strong>Takeaway:</strong> '+esc(l.output)+'</div></div><aside class="mental"><small>Mental picture</small><strong>'+esc(l.mental)+"</strong><p>"+esc(l.mentalText)+"</p></aside></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>2. Input and output</h2><p>Know what goes in and what comes out</p></div><div class="body two"><div class="mini"><h3>Input</h3><p>'+esc(l.input)+'</p></div><div class="mini"><h3>Output</h3><p>'+esc(l.output)+"</p></div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>3. How it works</h2><p>Step by step, with the key rule that makes it correct</p></div><div class="body two"><div>'+listToHTML(l.steps)+'<div class="takeaway" style="margin-top:14px"><strong>Key rule:</strong> '+esc(l.invariant)+'</div></div><pre class="pseudo">'+esc(l.pseudo)+"</pre></div>";
+ html+='<div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Step</th><th>What happens</th><th>Why it matters</th></tr></thead><tbody>';
+ for(var ti=0;ti<l.trace.length;ti++){
+  var row=l.trace[ti];
+  html+="<tr>"+row.map(function(v){return "<td>"+esc(v)+"</td>"}).join("")+"</tr>";
+ }
+ html+="</tbody></table></div></section>";
+ html+=demoArea;
+ html+='<section class="panel"><div class="panel-head"><h2>4. Cost and behavior</h2><p>Costs depend on the workload, the hardware and the concurrency level.</p></div><div class="body"><div class="tiles">';
+ var tileLabels=["Time","Space","Trade-off"];
+ for(var ci2=0;ci2<l.complexity.length;ci2++){
+  var x=l.complexity[ci2];
+  var short=x.split(" ").slice(0,2).join(" ");
+  html+='<div class="tile"><span>'+tileLabels[ci2]+"</span><strong>"+esc(short)+"</strong><small>"+esc(x)+"</small></div>";
+ }
+ html+='</div><div class="two" style="margin-top:12px"><div class="mini"><h3>Strengths</h3><p>'+esc(l.strength)+'</p></div><div class="mini"><h3>Limits</h3><p>'+esc(l.limits)+"</p></div></div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>5. Code and usage</h2><p>Reference code is for learning. Real systems use a vetted kernel or runtime.</p></div><div class="code-head"><div><span class="tag">'+(CODE[id]?"Python example":"Concept outline, not executable")+'</span> <span class="tag">Editable</span></div><div class="header-actions" style="margin:0"><button class="btn" id="copyCode">Copy code</button><button class="btn" id="downloadCode">Download</button></div></div><textarea id="codeEditor" class="code-editor" spellcheck="false" aria-label="Editable Python code">'+esc(code)+'</textarea><div class="code-foot"><span>'+(CODE[id]?"Reference example. The in-page lab runs its own JavaScript implementation.":"Lesson-specific outline, not an implementation.")+'</span><span id="codeStatus">Local draft</span></div><div class="body"><div class="mini"><h3>Where it is used</h3><p>'+esc(l.uses)+'</p></div><div class="notice" style="margin-top:12px"><strong>Common pitfall:</strong> '+esc(l.pitfall)+"</div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>6. Choices and alternatives</h2><p>Pick based on the workload, the hardware and the guarantees you need</p></div><div class="body two"><div class="mini"><h3>When to use this</h3><p>'+esc(l.strength)+'</p></div><div class="mini"><h3>When to use something else</h3><p>'+esc(l.limits)+"</p></div></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>7. Check yourself</h2><p>Try to answer before you open the explanation</p></div><div class="body"><details class="practice"><summary>'+esc(l.question)+"</summary><p>"+esc(l.answer)+"</p></details></div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>8. References</h2><p>Standard references for this topic</p></div><div class="body">'+references+'<p class="muted" style="font-size:11.5px;margin-top:14px">The labs on this page are teaching implementations. For production work use a real OS kernel (Linux, FreeBSD, Windows), a real runtime (HotSpot, .NET, Go), or the actual hardware manuals (Intel SDM, ARM ARM) for the memory-ordering details.</p></div></section>';
+ html+='<footer class="footer"><span>Az Operating Systems &amp; Memory Lab · local learning</span><span>Lesson '+(index+1)+" of "+LESSONS.length+" · Next: "+esc(next.title)+'</span><button class="btn" id="nextLesson">Next →</button></footer>';
+ $("#mainView").innerHTML=html;
+
+ $("#bookmarkBtn").onclick=function(){
+  if(state.bookmarks[id])delete state.bookmarks[id];else state.bookmarks[id]=true;
+  save();renderLesson(id);
+  toast(state.bookmarks[id]?"Bookmarked":"Bookmark removed");
+ };
+ $("#completeBtn").onclick=function(){
+  if(state.completed[id])delete state.completed[id];else state.completed[id]=true;
+  save();renderTree();renderLesson(id);
+  toast(state.completed[id]?"Lesson completed":"Completion removed");
+ };
+ $("#nextLesson").onclick=function(){openLesson(next.id)};
+ $("#copyCode").onclick=function(){
+  var v=$("#codeEditor").value;
+  function fallbackCopy(vv){
+   var ta=$("#codeEditor");ta.select();
+   try{document.execCommand("copy");toast("Code copied")}catch(e){toast("Copy failed")}
+  }
+  try{
+   if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(v).then(function(){toast("Code copied")},function(){fallbackCopy(v)});
+   } else fallbackCopy(v);
+  }catch(e){fallbackCopy(v)}
+ };
+ $("#downloadCode").onclick=function(){
+  downloadText(id+".py",$("#codeEditor").value,"text/x-python");
+ };
+ $("#codeEditor").addEventListener("input",function(){
+  state.drafts[id]=$("#codeEditor").value;
+  save();
+  $("#codeStatus").textContent="Draft saved locally";
+ });
+ if(hasDemo){
+  $("#runLab").onclick=function(){runLab(l)};
+  $("#resetSample").onclick=function(){
+   $("#labInput").value=l.sample||"";
+   $("#labEncoded").textContent="Run the lab to see output.";
+   $("#labDecoded").textContent="Step notes appear here.";
+  };
+  runLab(l,true);
+ }
+ renderTree();save();
+ if(location.hash!=="#"+id)history.replaceState(null,"","#"+id);
+}
+
+function renderHome(){
+ state.page="home";
+ var html="";
+ html+='<div class="home-hero"><div class="eyebrow">AZ · ENGINEERING TOOLBOOK</div><h1>Understand operating systems and memory from processes and syscalls to NUMA and lock-free allocation.</h1><p>A hands-on course on OS internals: processes and threads, scheduling, concurrency and mutual exclusion, deadlocks, memory allocation, kernel allocators, virtual memory, page replacement, protection, garbage collection, modern collectors, I/O scheduling and advanced systems memory. Every lesson has a plain explanation and a runnable lab that runs entirely in the browser.</p><div class="header-actions" style="margin:0"><button class="btn primary" id="startFirst">Start at OS foundations</button><button class="btn" id="resumeLesson">Continue lesson</button></div></div>';
+ html+='<div class="stats"><div class="stat"><strong>'+CHAPTERS.length+'</strong><span>chapters</span></div><div class="stat"><strong>'+LESSONS.length+'</strong><span>lessons</span></div><div class="stat"><strong>'+LESSONS.filter(function(l){return l.demo&&l.demo!=="none"}).length+'</strong><span>runnable labs</span></div><div class="stat"><strong>1</strong><span>standalone HTML file</span></div></div>';
+ html+='<section class="panel"><div class="panel-head"><h2>Honest scope</h2><p>One file covers the whole OS and memory curriculum. Production systems are a separate engineering project.</p></div><div class="body two"><div class="mini"><h3>What runs here</h3><p>Process and syscall timelines, FCFS/SJF/SRT/RR/priority scheduling, mutex and semaphore simulation, Peterson and bakery and ticket locks, Banker\'s algorithm, first-fit/best-fit/worst-fit, buddy and slab allocators, page-table walks and TLB cost, FIFO/LRU/Clock/Optimal page replacement with Belady\'s anomaly, COW and mmap and ASLR, reference counting and mark-sweep and copying GC, G1 and ZGC region simulation, SSTF/SCAN/C-SCAN I/O scheduling, and NUMA and false-sharing and memory-ordering analysis.</p></div><div class="mini"><h3>What does not run here</h3><p>A real kernel, a real CPU, a real page-table walker, a production garbage collector, a real disk driver and the actual hardware memory model. Those need Linux or FreeBSD source, the Intel SDM and ARM ARM, HotSpot or .NET, and a profiling tool like perf or VTune.</p></div></div></section>';
+ html+='<div class="panel"><div class="panel-head"><h2>Course map</h2><p>Pick a chapter. The path runs from OS foundations to advanced systems memory.</p></div><div class="body"><div class="chapter-cards">';
+ for(var i=0;i<CHAPTERS.length;i++){
+  var c=CHAPTERS[i];
+  html+='<button class="chapter-card" data-chapter="'+c.id+'"><span class="num">CHAPTER '+String(i+1).padStart(2,"0")+" · "+c.ids.length+" LESSON"+(c.ids.length>1?"S":"")+"</span><strong>"+esc(c.title.replace(/^\d+(\.\d+)?\.?\s*/,""))+"</strong><p>"+esc(c.desc)+"</p></button>";
+ }
+ html+="</div></div></div>";
+ html+='<footer class="footer"><span>Az Operating Systems &amp; Memory Lab</span><span>Single file · no external runtime dependencies</span></footer>';
+ $("#mainView").innerHTML=html;
+ $("#startFirst").onclick=function(){openLesson("os-foundations")};
+ $("#resumeLesson").onclick=function(){
+  var id=state.current&&byId[state.current]?state.current:"os-foundations";
+  openLesson(id);
+ };
+ var cards=$("#mainView").querySelectorAll("[data-chapter]");
+ for(var ci=0;ci<cards.length;ci++){
+  cards[ci].onclick=(function(cid){
+   return function(){
+    for(var k=0;k<CHAPTERS.length;k++)if(CHAPTERS[k].id===cid)return openLesson(CHAPTERS[k].ids[0]);
+   };
+  })(cards[ci].dataset.chapter);
+ }
+}
+
+function renderProgressPage(){
+ state.page="progress";
+ var completedIds=Object.keys(state.completed);
+ var bookmarkIds=Object.keys(state.bookmarks);
+ var html="";
+ html+='<div class="breadcrumb">OS Lab / Bookmarks &amp; progress</div><header class="header"><div class="eyebrow">LOCAL ONLY</div><h1>Bookmarks and progress</h1><p>Your progress stays in this browser. Export the JSON to move it or keep a backup.</p></header>';
+ html+='<section class="panel"><div class="panel-head"><h2>Completed lessons</h2></div><div class="body">';
+ if(completedIds.length){
+  html+='<div class="references">'+completedIds.map(function(id){return '<a href="#'+id+'" data-open="'+id+'">'+esc(byId[id].title)+"</a>"}).join("")+"</div>";
+ } else html+='<p class="muted">No lessons marked complete yet.</p>';
+ html+="</div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>Bookmarks</h2></div><div class="body">';
+ if(bookmarkIds.length){
+  html+='<div class="references">'+bookmarkIds.map(function(id){return '<a href="#'+id+'" data-open="'+id+'">'+esc(byId[id].title)+"</a>"}).join("")+"</div>";
+ } else html+='<p class="muted">No bookmarks yet.</p>';
+ html+="</div></section>";
+ html+='<section class="panel"><div class="panel-head"><h2>Progress data</h2></div><div class="body"><div class="header-actions" style="margin:0"><button class="btn primary" id="exportProgress">Export progress JSON</button><button class="btn" id="clearProgress">Clear completion marks</button></div><p class="muted" style="font-size:12.5px;margin-top:14px">Import accepts only known lesson IDs and a supported schema version.</p></div></section>';
+ $("#mainView").innerHTML=html;
+ var links=$("#mainView").querySelectorAll("[data-open]");
+ for(var i=0;i<links.length;i++){
+  links[i].onclick=(function(id){
+   return function(e){e.preventDefault();openLesson(id)};
+  })(links[i].dataset.open);
+ }
+ $("#exportProgress").onclick=exportProgress;
+ $("#clearProgress").onclick=function(){
+  if(confirm("Clear all completion marks?")){
+   state.completed={};
+   save();renderProgressPage();renderTree();
+   toast("Completion marks cleared");
+  }
+ };
+}
+
+function openLesson(id){
+ if(!byId[id])return;
+ renderLesson(id);
+ renderTree();
+ var mv=$("#mainView");
+ if(mv.focus)mv.focus({preventScroll:true});
+ window.scrollTo(0,0);
+}
+function downloadText(name,text,type){
+ type=type||"text/plain";
+ var blob=new Blob([text],{type:type});
+ var url=URL.createObjectURL(blob);
+ var a=document.createElement("a");
+ a.href=url;a.download=name;
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ setTimeout(function(){URL.revokeObjectURL(url)},800);
+}
+function exportProgress(){
+ var data={
+  schemaVersion:1,
+  completed:Object.keys(state.completed),
+  bookmarks:Object.keys(state.bookmarks),
+  theme:state.theme,
+  current:state.current,
+  drafts:state.drafts
+ };
+ downloadText("az-os-lab-progress.json",JSON.stringify(data,null,2),"application/json");
+ toast("Progress exported");
+}
+function importProgressFile(file){
+ if(file.size>2000000){toast("Import rejected: file too large");return}
+ var r=new FileReader();
+ r.onload=function(){
+  try{
+   var d=JSON.parse(r.result);
+   if(!d||d.schemaVersion!==1)throw Error("bad schema");
+   if(!Array.isArray(d.completed)||!Array.isArray(d.bookmarks)||typeof d.drafts!=="object")throw Error("bad schema");
+   var bad=false;
+   d.completed.concat(d.bookmarks).forEach(function(id){if(typeof id!=="string"||!byId[id])bad=true});
+   if(bad)throw Error("unknown id");
+   state.completed={};
+   state.bookmarks={};
+   d.completed.forEach(function(id){state.completed[id]=true});
+   d.bookmarks.forEach(function(id){state.bookmarks[id]=true});
+   if(["system","light","dark"].indexOf(d.theme)>=0)state.theme=d.theme;
+   state.current=byId[d.current]?d.current:null;
+   state.drafts={};
+   Object.keys(d.drafts).forEach(function(k){
+    if(byId[k]&&typeof d.drafts[k]==="string"&&d.drafts[k].length<100000)state.drafts[k]=d.drafts[k];
+   });
+   applyTheme();save();renderTree();
+   if(state.current)openLesson(state.current);else renderHome();
+   toast("Progress imported");
+  }catch(e){toast("Import rejected: invalid progress data")}
+ };
+ r.readAsText(file);
+}
+
+function bindGlobal(){
+ $("#themeSelect").onchange=function(){state.theme=$("#themeSelect").value;applyTheme();save()};
+ $("#printBtn").onclick=function(){window.print()};
+ $("#exportBtn").onclick=exportProgress;
+ $("#importBtn").onclick=function(){$("#importFile").click()};
+ $("#importFile").onchange=function(e){
+  if(e.target.files&&e.target.files[0])importProgressFile(e.target.files[0]);
+  e.target.value="";
+ };
+ $("#searchInput").oninput=renderTree;
+ $("#chapterFilter").onchange=renderTree;
+ $("#homeLink").onclick=function(e){e.preventDefault();renderHome();history.replaceState(null,"","#home")};
+ $("#courseTree").onclick=function(e){
+  var b=e.target.closest?e.target.closest("[data-lesson]"):null;
+  if(b)openLesson(b.dataset.lesson);
+ };
+ var homeBtns=document.querySelectorAll('[data-page="home"]');
+ for(var i=0;i<homeBtns.length;i++)homeBtns[i].onclick=renderHome;
+ var progressBtns=document.querySelectorAll('[data-page="progress"]');
+ for(var j=0;j<progressBtns.length;j++)progressBtns[j].onclick=renderProgressPage;
+ document.addEventListener("keydown",function(e){
+  var tag=document.activeElement.tagName;
+  if(e.key==="/"&&["INPUT","TEXTAREA","SELECT"].indexOf(tag)<0){
+   e.preventDefault();$("#searchInput").focus();
+  }
+  if(e.key.toLowerCase()==="t"&&["INPUT","TEXTAREA","SELECT"].indexOf(tag)<0){
+   state.theme=state.theme==="dark"?"light":state.theme==="light"?"system":"dark";
+   applyTheme();save();
+  }
+ });
+}
+
+function init(){
+ try{
+  load();
+  applyTheme();
+  for(var ci=0;ci<CHAPTERS.length;ci++){
+   var op=document.createElement("option");
+   op.value=CHAPTERS[ci].id;
+   op.textContent=CHAPTERS[ci].title;
+   $("#chapterFilter").appendChild(op);
+  }
+  bindGlobal();
+  renderTree();
+  var hash=location.hash.replace(/^#/,"");
+  if(hash&&byId[hash])renderLesson(hash);
+  else if(state.current&&byId[state.current])renderLesson(state.current);
+  else renderHome();
+  progress();
+ }catch(e){
+  var mv=document.getElementById("mainView");
+  if(mv)mv.innerHTML='<div style="padding:20px;color:#ff929e"><h2>Initialization error</h2><pre>'+String(e&&e.stack||e)+"</pre></div>";
+  if(window.console)console.error(e);
+ }
+}
+init();
+</script></body></html>
